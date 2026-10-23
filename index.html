@@ -3,271 +3,208 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0b1420">
-  <meta name="description" content="第０創薬化学研究所 開発試験システム「手占い」。端末内で手を認識し、占い結果を表示します。">
-  <title>手占い | 第０創薬化学研究所</title>
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="第０創薬化学研究所が開発中の手占いシステム。手を撮影して、健康状態のレポートを表示します。">
+  <title>手占い｜第０創薬化学研究所</title>
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #08111b;
-      --panel: #101d2b;
-      --panel-deep: #0a1521;
-      --line: #26384a;
-      --line-bright: #365267;
-      --main: #e9f1f6;
-      --muted: #96aabd;
-      --dim: #688096;
-      --cyan: #78e5d8;
-      --cyan-weak: rgba(120, 229, 216, .13);
-      --red: #ff6f73;
-      --red-weak: rgba(255, 111, 115, .12);
-      --radius: 7px;
-      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+      color-scheme: light;
+      --white:#ffffff;
+      --bg:#f7f9fa;
+      --ink:#273847;
+      --sub:#617582;
+      --muted:#7f9099;
+      --line:#dfe7ea;
+      --blue:#167ca8;
+      --blue-deep:#126589;
+      --blue-light:#eaf5fa;
+      --orange:#e98b37;
+      --orange-light:#fff5eb;
+      --r:5px;
+      font-family:-apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
     }
-    *, *::before, *::after { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--main); font-size: 15px; -webkit-font-smoothing: antialiased; }
-    body::before { content: ""; pointer-events: none; position: fixed; inset: 0; opacity: .48; background-image: linear-gradient(rgba(100,151,175,.045) 1px, transparent 1px),linear-gradient(90deg, rgba(100,151,175,.045) 1px, transparent 1px); background-size: 42px 42px; mask-image: linear-gradient(to bottom, #000, transparent 88%); }
-    button { font: inherit; cursor: pointer; }
-    button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
-    button:disabled { cursor: not-allowed; opacity: .48; }
-    [hidden] { display: none !important; }
-    .shell { position: relative; max-width: 1112px; padding: 0 30px; margin: 0 auto; }
-    .site-header { border-bottom: 1px solid var(--line); background: rgba(8,17,27,.87); }
-    .header-inner { display: flex; align-items: center; justify-content: space-between; min-height: 81px; gap: 18px; }
-    .brand { display: flex; align-items: center; gap: 13px; }
-    .brand-mark { width: 40px; height: 40px; border: 1px solid var(--cyan); display: grid; place-items: center; font-size: 23px; font-weight: 750; color: var(--cyan); letter-spacing: -.1em; line-height: 1; padding-right: 3px; position: relative; }
-    .brand-mark::after { content:""; position:absolute; height:7px; width:7px; background:var(--cyan); top:-4px; right:-4px; }
-    .brand-name { font-size: 14px; letter-spacing: .09em; font-weight: 700; }
-    .brand-en { font-size: 9px; letter-spacing: .13em; color: var(--dim); margin-top: 4px; }
-    .header-status { display: flex; align-items: center; gap: 9px; color: var(--cyan); font: 11px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .05em; white-space: nowrap; }
-    .status-dot { height: 7px; width: 7px; background: var(--cyan); border-radius: 50%; box-shadow: 0 0 0 4px rgba(120,229,216,.08); }
-    main { padding-top: 44px; padding-bottom: 62px; }
-    .eyebrow { display: flex; align-items: center; flex-wrap: wrap; gap: 11px; color: var(--cyan); font: 700 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .12em; }
-    .eyebrow .line { width: 35px; height: 1px; background: var(--cyan); opacity: .55; }
-    .hero-heading { margin: 17px 0 12px; display: flex; align-items: baseline; gap: 22px; flex-wrap: wrap; }
-    h1 { margin: 0; font-size: clamp(38px, 5.8vw, 60px); font-weight: 750; line-height: 1.3; letter-spacing: .07em; }
-    .latin-heading { font: 13px/1.4 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .23em; color: #7596aa; }
-    .hero-desc { color: #bacad5; line-height: 1.9; margin: 0 0 32px; font-size: 14px; }
-    .badge-proto { display: inline-flex; font: 10px/1.2 ui-monospace, Menlo, monospace; border: 1px solid #385060; color: #9eafbb; border-radius: 2px; padding: 5px 7px; margin-left: 6px; vertical-align: middle; letter-spacing: .08em; }
-    .app-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(310px, .86fr); gap: 18px; align-items: start; }
-    .panel { background: linear-gradient(160deg, rgba(20,36,51,.98), rgba(14,27,40,.98)); border: 1px solid var(--line); border-radius: var(--radius); }
-    .panel-top { min-height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 20px; border-bottom: 1px solid var(--line); }
-    .panel-title { font: 700 11px/1.5 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .13em; color: #adc1cf; }
-    .panel-index { font: 11px ui-monospace, Menlo, Consolas, monospace; color: var(--dim); }
-    .monitor { margin: 19px; background: #040b13; height: min(48vw, 428px); min-height: 320px; border: 1px solid #233b4c; position: relative; overflow: hidden; isolation: isolate; }
-    .monitor::after { content: ""; z-index: 6; pointer-events: none; position:absolute; inset: 0; background-image: repeating-linear-gradient(0deg, transparent 0 4px, rgba(129,201,216,.025) 4px 5px); }
-    .monitor-grid { position: absolute; inset: 0; opacity: .7; background-image: linear-gradient(rgba(113,174,192,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(113,174,192,.07) 1px, transparent 1px); background-size: 29px 29px; background-position: center; }
-    .monitor video, .monitor #preview { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; }
-    .monitor video.is-mirrored { transform: scaleX(-1); }
-    .monitor video:not([hidden]) + #preview:not([hidden]) { display:none; }
-    .focus-corners { pointer-events: none; position:absolute; inset: 36px 37px; z-index: 5; }
-    .focus-corners span { position: absolute; width: 33px; height: 33px; border-color: var(--cyan); border-style: solid; opacity: .65; }
-    .focus-corners span:nth-child(1) { top:0; left:0; border-width:2px 0 0 2px; }
-    .focus-corners span:nth-child(2) { top:0; right:0; border-width:2px 2px 0 0; }
-    .focus-corners span:nth-child(3) { bottom:0; left:0; border-width:0 0 2px 2px; }
-    .focus-corners span:nth-child(4) { bottom:0; right:0; border-width:0 2px 2px 0; }
-    .monitor-tag { position: absolute; z-index:7; top: 13px; left: 17px; display:flex; gap:8px; color:var(--cyan); font: 10px/1.5 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .1em; text-shadow: 0 1px 5px #041019; }
-    .monitor-lower { position:absolute; z-index:7; bottom: 14px; left: 17px; right: 17px; color: #afc5cd; display:flex; align-items:center; justify-content:space-between; gap:10px; font: 10px ui-monospace, Menlo, monospace; text-shadow: 0 1px 5px #000; }
-    .monitor-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:19px; color:#83b6bb; z-index:2; text-align:center; }
-    .palm-outline { width: 104px; height: 122px; opacity: .72; }
-    .standby-line { font: 12px/1.8 ui-monospace, Menlo, Consolas, monospace; letter-spacing:.17em; }
-    .scan-overlay { position:absolute; inset:0; z-index:8; background:rgba(5,13,22,.81); display:flex; align-items:center; flex-direction:column; justify-content:center; text-align:center; padding:24px; }
-    .scan-icon { width:76px; height:76px; border: 2px solid rgba(120,229,216,.19); border-top-color:var(--cyan); border-radius:50%; animation:spin 1s linear infinite; position:relative; }
-    .scan-icon::before { content:""; position:absolute; inset:11px; border:1px solid rgba(120,229,216,.35); border-bottom-color:transparent; border-radius:50%; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .scan-label { margin-top: 22px; font-size: 16px; letter-spacing:.08em; font-weight: 700; }
-    .scan-sub { color:#9db5c3; font-size:12px; margin-top:8px; line-height:1.8; }
-    .progress-track { height: 2px; width: min(210px,90%); background: #334759; margin-top:24px; overflow:hidden; }
-    .progress-bar { width:0%; height:100%; background:var(--cyan); transition:width .45s ease; }
-    .monitor-foot { display:flex; gap:10px; flex-wrap: wrap; justify-content:space-between; padding:0 20px 18px; color:var(--dim); font:10px/1.6 ui-monospace, Menlo, Consolas, monospace; letter-spacing:.03em; }
-    .control-panel { padding-bottom: 20px; }
-    .control-body { padding: 24px 24px 20px; }
-    h2 { margin:0; font-size:22px; line-height:1.45; letter-spacing:.025em; }
-    .control-lead { color:#a9bdca; line-height: 1.95; font-size: 13px; margin:12px 0 22px; }
-    .procedure { border-top:1px solid var(--line); margin: 22px 0 4px; padding:0; list-style:none; }
-    .procedure li { display:flex; gap:15px; padding:15px 0; border-bottom:1px solid var(--line); align-items:center; color:#d8e4ea; font-size:13px; }
-    .procedure-n { color:var(--cyan); font:12px ui-monospace, Menlo, monospace; }
-    .btn { width:100%; min-height: 50px; border-radius:4px; font-size:13px; letter-spacing:.045em; font-weight:700; padding:11px 16px; display:flex; align-items:center; justify-content:center; gap:12px; transition:background .2s,border-color .2s,transform .15s; }
-    .btn:hover:not(:disabled) { transform: translateY(-1px); }
-    .btn-primary { border:1px solid #82e9dd; background: var(--cyan); color:#06202b; }
-    .btn-primary:hover:not(:disabled) { background:#b0fff1; }
-    .btn-outline { border:1px solid #3c5868; color:#d5e8ee; background:rgba(12,24,36,.4); }
-    .btn-outline:hover:not(:disabled) { border-color:#8ab2c0; background: rgba(83,125,143,.09); }
-    .btn-ghost { border:0; color:#9bb9c4; background:transparent; font-size:12px; min-height:42px; }
-    .btn-icon { font-size: 17px; font-weight:400; line-height: 1; }
-    .button-stack { display:grid; gap:10px; }
-    .two-btn { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .micro-text { color:var(--dim); font-size:11px; line-height:1.85; margin:15px 0 0; }
-    .privacy { margin: 0 24px; border:1px solid #34525b; padding:15px; display:flex; gap:12px; background:rgba(35,89,92,.1); align-items:flex-start; }
-    .privacy svg { color: var(--cyan); flex:0 0 auto; margin-top: 2px; }
-    .privacy-title { color: #c8e7e6; font-size:12px; font-weight:700; margin-bottom:7px; }
-    .privacy p { margin:0; color:#a7c2c6; font-size:11px; line-height:1.95; }
-    .error-box { color:#ffb1b2; background:rgba(250,90,99,.075); border:1px solid rgba(255,111,115,.4); padding:12px 14px; font-size:12px; line-height:1.75; margin:13px 0 0; }
-    .footer { padding:22px 0 32px; border-top:1px solid var(--line); }
-    .footer-row { display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; font:10px/1.8 ui-monospace, Menlo, Consolas, monospace; color:#647f91; letter-spacing:.07em; }
-    .result-wrap { max-width:780px; margin:0 auto; }
-    .result-card { border:1px solid #315065; background:linear-gradient(170deg,#142434,#0c1927); border-radius:var(--radius); overflow:hidden; }
-    .result-header { border-bottom:1px solid #315065; display:flex; justify-content:space-between; align-items:center; gap:12px; padding:19px 25px; }
-    .result-state { display:flex; align-items:center; gap:10px; color:var(--cyan); font:11px ui-monospace,Menlo,Consolas,monospace; letter-spacing:.08em; }
-    .result-body { padding:32px 36px 33px; }
-    .result-overline { color:var(--cyan); font:700 11px/1.5 ui-monospace,Menlo,monospace; letter-spacing:.16em; margin:0 0 11px; }
-    .result-title { margin:0; font-size:clamp(27px,5vw,38px); font-weight:750; letter-spacing:.035em; }
-    .result-rule { height:1px; background:linear-gradient(to right,var(--cyan),#284557 42%,#284557); margin:24px 0 28px; }
-    .fortune-main { font-size:16px; line-height:2.15; color:#dce9ef; letter-spacing:.035em; margin:0; }
-    .alert-block { border-left:3px solid var(--red); background: var(--red-weak); margin:21px 0 0; padding:16px 19px; }
-    .alert-code { color:#f5a4a7; font:10px ui-monospace,Menlo,monospace; letter-spacing:.15em; margin-bottom:10px; }
-    .alert-text { color:#ff9a9e; font-size:17px; font-weight:750; line-height:1.9; letter-spacing:.02em; margin:0; }
-    .result-data { border-top:1px solid var(--line); padding:17px 24px; display:flex; flex-wrap:wrap; gap:14px 28px; color:#8ba9b5; font:10px/1.5 ui-monospace,Menlo,monospace; letter-spacing:.05em; }
-    .result-data strong { color:var(--cyan); font-weight:600; }
-    .handoff { margin-top:26px; background:#f0f3f4; border:1px solid #cdd8dd; border-radius:5px; padding:24px 28px 26px; color:#1f3340; }
-    .handoff-marker { display:flex; align-items:center; gap:9px; color:#58717e; font:700 11px/1.4 ui-monospace,Menlo,monospace; letter-spacing:.12em; }
-    .handoff-marker::before { content:""; width:6px; height:6px; background:#50758a; }
-    .handoff h2 { font-size:20px; margin:14px 0 10px; letter-spacing:0; }
-    .handoff p { font-size:13px; line-height:1.9; color:#4b626e; margin:0 0 19px; }
-    .handoff .btn-primary { background:#152f42; border-color:#152f42; color:#f8fcff; max-width:330px; }
-    .handoff .btn-primary:hover { background:#27506a; }
-    .handoff-note { font-size:11px !important; color:#6b7c85 !important; margin:14px 0 0 !important; }
-    .reset-link { display:block; margin:23px auto 0; color:#90c7cc; border:0; background:none; font-size:12px; text-decoration:underline; text-underline-offset:4px; }
-    .copy-status { color:#18553d; font-size:12px; margin-top:11px; min-height:18px; }
-    @media (max-width:790px) {
-      .app-grid { grid-template-columns:1fr; }
-      .monitor { height: min(75vw, 470px); }
-      main { padding-top:28px; }
-      .hero-desc { margin-bottom:23px; }
-    }
-    @media (max-width:500px) {
-      .shell { padding:0 17px; }
-      .header-inner { min-height: 71px; }
-      .brand-mark { width:35px; height:35px; font-size:20px; }
-      .brand-name { font-size:12px; }
-      .brand-en { font-size:8px; }
-      .header-status { font-size:9px; }
-      .badge-proto { font-size:9px; }
-      .hero-heading { gap:5px 15px; margin:13px 0 11px; }
-      .latin-heading { font-size:10px; }
-      .hero-desc { font-size:12px; }
-      .monitor { margin:11px; height:auto; min-height:0; aspect-ratio: 4/4.4; }
-      .monitor-foot { padding: 0 12px 13px; font-size:9px; }
-      .focus-corners { inset: 35px 26px; }
-      .control-body { padding:22px 18px 18px; }
-      .privacy { margin:0 18px; }
-      .two-btn { grid-template-columns:1fr; }
-      .result-body { padding:26px 22px 28px; }
-      .result-header { padding:14px 17px; }
-      .fortune-main { font-size:14px; line-height:2.1; }
-      .alert-text { font-size:15px; }
-      .handoff { padding:23px 20px; }
-      .handoff h2 { font-size:18px; }
-      .handoff .btn-primary { max-width:none; }
-    }
-    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important; } }
+    * ,*::before,*::after {box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--ink);margin:0;min-height:100vh;font-size:15px;-webkit-font-smoothing:antialiased;}
+    [hidden]{display:none!important;}
+    button{font:inherit;cursor:pointer;}
+    button:disabled{opacity:.56;cursor:not-allowed;}
+    button:focus-visible{outline:3px solid #91cddd;outline-offset:3px;}
+    .shell{width:min(100% - 48px,1040px);margin-inline:auto;}
+    .site-header{background:#fff;border-bottom:1px solid var(--line);}
+    .header-row{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:15px;}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;}
+    .brand-logo{display:block;max-width:280px;height:50px;width:auto;object-fit:contain;object-position:left center;}
+    .brand-name{font-size:15px;letter-spacing:.06em;font-weight:700;}
+    .dev-status{color:var(--sub);font-size:12px;border-left:2px solid var(--orange);padding:3px 0 3px 12px;}
+    main{padding:48px 0 64px;}
+    .intro{margin-bottom:30px;}
+    .intro-label{font-size:12px;color:var(--blue);font-weight:700;margin:0 0 9px;}
+    h1{font-size:clamp(34px,5vw,46px);font-weight:750;letter-spacing:.06em;margin:0 0 10px;line-height:1.3;}
+    .intro-copy{color:var(--sub);font-size:14px;line-height:1.9;margin:0;}
+    .layout{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(320px,.9fr);gap:20px;align-items:stretch;}
+    .paper{background:var(--white);border:1px solid var(--line);border-radius:var(--r);}
+    .paper-head{padding:18px 23px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+    .head-accent{height:19px;width:3px;background:var(--blue);flex:none;}
+    h2{font-size:18px;font-weight:700;margin:0;line-height:1.5;letter-spacing:.02em;}
+    .photo-area{padding:23px;}
+    .monitor{width:100%;aspect-ratio:1.25;max-height:410px;min-height:280px;position:relative;background:#edf4f7;border:1px solid #dce8ec;overflow:hidden;isolation:isolate;}
+    .monitor video,.monitor canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;}
+    .monitor video{object-fit:cover;}
+    .monitor video.is-mirrored{transform:scaleX(-1);}
+    .monitor-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#91aeba;gap:13px;padding:26px;}
+    .palm-outline{width:92px;height:110px;opacity:.8;}
+    .standby-line{font-size:13px;line-height:1.8;color:#698794;font-weight:600;}
+    .monitor-top{position:absolute;z-index:5;left:14px;top:13px;display:inline-block;background:rgba(255,255,255,.92);border:1px solid #e0e8eb;padding:6px 9px;color:#3b6d82;font-size:11px;font-weight:600;}
+    .monitor-bottom{position:absolute;z-index:5;bottom:0;left:0;right:0;text-align:center;background:rgba(255,255,255,.9);border-top:1px solid rgba(224,232,235,.8);color:#506e7d;padding:9px 12px;font-size:11px;}
+    .photo-foot{margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.7;}
+    .control-card{padding-bottom:21px;}
+    .control-content{padding:23px;}
+    .control-lead{margin:0 0 20px;color:var(--sub);font-size:13px;line-height:1.9;}
+    .instructions{margin:0 0 23px;padding:0;list-style:none;border-top:1px solid var(--line);}
+    .instructions li{display:flex;gap:13px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.7;}
+    .step{flex:0 0 24px;height:24px;display:grid;place-items:center;color:var(--blue);background:var(--blue-light);font-size:12px;font-weight:700;}
+    .button-stack{display:grid;gap:10px;}
+    .btn{border-radius:4px;width:100%;min-height:49px;padding:12px 14px;display:inline-flex;align-items:center;justify-content:center;text-align:center;gap:9px;font-size:14px;font-weight:700;transition:background-color .17s ease,border-color .17s ease;}
+    .btn-primary{background:var(--blue);border:1px solid var(--blue);color:#fff;}
+    .btn-primary:hover:not(:disabled){background:var(--blue-deep);border-color:var(--blue-deep);}
+    .btn-outline{border:1px solid #a9c9d6;background:#fff;color:var(--blue-deep);}
+    .btn-outline:hover:not(:disabled){background:#eff7fa;}
+    .btn-ghost{border:0;background:transparent;color:var(--blue);font-size:12px;font-weight:600;min-height:38px;text-decoration:underline;text-underline-offset:3px;}
+    .btn-ghost:hover:not(:disabled){color:var(--blue-deep);}
+    .two-btn{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .error-box{margin:15px 0 0;color:#a34e1b;background:#fff5eb;border-left:3px solid var(--orange);padding:12px 14px;font-size:12px;line-height:1.8;}
+    .micro-text{font-size:11px;line-height:1.75;color:var(--muted);margin:14px 0 0;}
+    .privacy{margin:0 23px;border-top:1px solid var(--line);padding:18px 0 0;display:flex;align-items:flex-start;gap:11px;}
+    .privacy svg{flex:none;color:var(--blue);margin-top:1px;}
+    .privacy-title{font-size:12px;font-weight:700;margin:0 0 6px;}
+    .privacy p{font-size:11px;color:var(--sub);line-height:1.8;margin:0;}
+    .scan-overlay{position:absolute;inset:0;z-index:9;background:rgba(250,253,254,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;}
+    .scan-icon{height:44px;width:44px;border-radius:50%;border:3px solid #cbe7f1;border-top-color:var(--blue);animation:spin 1s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .scan-label{font-weight:700;font-size:16px;margin:16px 0 6px;}
+    .scan-sub{font-size:12px;color:var(--sub);line-height:1.7;}
+    .progress-track{margin-top:21px;width:185px;height:4px;background:#dceef4;overflow:hidden;}
+    .progress-bar{height:100%;width:0;background:var(--blue);transition:width .3s ease;}
+    .result-wrap{max-width:760px;margin:auto;}
+    .result-card{overflow:hidden;}
+    .result-head{background:#fff;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:20px 26px;border-bottom:1px solid var(--line);}
+    .result-head h2{font-size:26px;}
+    .result-status{display:inline-flex;align-items:center;gap:7px;color:var(--blue);font-size:12px;font-weight:700;white-space:nowrap;}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);}
+    .result-content{padding:25px 29px 29px;}
+    .result-subheading{font-size:12px;color:var(--blue);font-weight:700;margin:0 0 13px;}
+    .fortune-main{font-size:15px;line-height:2.12;letter-spacing:.018em;margin:0;color:#304251;}
+    .alert-block{margin:17px 0 0;border-left:3px solid var(--orange);background:var(--orange-light);padding:15px 18px;}
+    .alert-text{font-size:16px;font-weight:700;line-height:1.7;color:#75451f;margin:0;}
+    .report-foot{border-top:1px solid var(--line);padding:15px 29px;font-size:11px;line-height:1.75;color:var(--muted);}
+    .handoff{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:25px 29px 24px;}
+    .handoff-label{color:var(--orange);font-size:12px;font-weight:700;margin:0 0 10px;}
+    .handoff h2{font-size:18px;line-height:1.85;margin:0 0 15px;}
+    .handoff h2 strong{color:var(--ink);}
+    .send-target{background:#f7f9fa;border:1px solid #e4e9ec;padding:14px 16px;margin:0 0 15px;font-size:15px;line-height:1.7;color:var(--ink);font-weight:700;user-select:text;}
+    .handoff .btn{width:min(100%,345px);}
+    .copy-status{margin-top:12px;font-size:12px;min-height:20px;color:var(--blue-deep);line-height:1.6;}
+    .game-note{margin:16px 0 0;padding-top:13px;border-top:1px solid var(--line);font-size:11px;line-height:1.9;color:var(--muted);}
+    .reset-link{display:block;margin:24px auto 0;border:0;background:transparent;text-decoration:underline;text-underline-offset:4px;color:var(--blue);font-size:13px;}
+    .footer{background:#fff;border-top:1px solid var(--line);padding:24px 0;color:#82919a;font-size:11px;line-height:1.8;}
+    @media(max-width:800px){main{padding:32px 0 54px;}.layout{grid-template-columns:1fr;}.monitor{max-height:480px;}}
+    @media(max-width:520px){.shell{width:min(100% - 32px,1040px);}.header-row{min-height:68px;}.brand-logo{max-width:185px;height:38px;}.brand-name{font-size:12px;}.dev-status{font-size:10px;padding-left:8px;}.intro{margin-bottom:24px;}.intro-copy{font-size:13px;}.paper-head{padding:16px 17px;}.photo-area{padding:13px;}.monitor{aspect-ratio:1/1;min-height:0;max-height:none;}.photo-foot{padding:0 2px;}.control-content{padding:20px 17px 17px;}.privacy{margin:0 17px;}.two-btn{grid-template-columns:1fr;}.result-head{padding:18px;}.result-head h2{font-size:22px;}.result-content{padding:22px 19px;}.fortune-main{font-size:14px;}.alert-text{font-size:15px;}.report-foot{padding:14px 19px;}.handoff{padding:21px 19px;}.handoff h2{font-size:16px;}.send-target{font-size:14px;}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}}
   </style>
 </head>
 <body>
   <header class="site-header">
-    <div class="shell header-inner">
+    <div class="shell header-row">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">0</div>
-        <div><div class="brand-name">第０創薬化学研究所</div><div class="brand-en">ZERO DRUG DISCOVERY LABORATORY</div></div>
+        <img src="./image/soyaku_logo.png" id="brandLogo" class="brand-logo" alt="第０創薬化学研究所" hidden>
+        <span class="brand-name" id="brandFallback">第０創薬化学研究所</span>
       </div>
-      <div class="header-status"><span class="status-dot"></span>AI SYSTEM <span class="badge-proto">BETA 0.9</span></div>
+      <span class="dev-status">開発中の試験システム</span>
     </div>
   </header>
-
   <main class="shell">
-    <!-- 1画面目 : 撮影・認識 -->
     <section id="captureScreen" aria-labelledby="captureTitle">
-      <div class="eyebrow"><span class="line"></span>EXPERIMENTAL APPLICATION <span style="color:#718da1">/</span> MODULE 014</div>
-      <div class="hero-heading"><h1 id="captureTitle">手占い</h1><span class="latin-heading">PALM READING SYSTEM</span></div>
-      <p class="hero-desc">最先端AIがあなたの手を解析し、現在のコンディションを予測します。<br>片手を撮影して、パーソナルレポートを生成してください。</p>
-      <div class="app-grid">
-        <section class="panel" aria-label="カメラ撮影エリア">
-          <div class="panel-top"><span class="panel-title">01 / IMAGE ACQUISITION</span><span class="panel-index">CAMERA INPUT</span></div>
-          <div class="monitor" id="monitor">
-            <div class="monitor-grid" aria-hidden="true"></div>
-            <div class="monitor-center" id="standby">
-              <svg class="palm-outline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 105 132" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M25 119c-4-12-10-21-16-34-3-7-1-12 5-14 5-2 9 2 14 10V25c0-7 3-11 9-11 6 0 8 5 8 11v23-33c0-7 3-11 9-11 5 0 8 5 8 11v32-23c0-8 3-12 9-12 5 0 8 4 8 11v31-16c0-7 3-11 9-11 6 0 8 5 8 11v43c0 24-14 38-18 48"/>
-                <path d="M24 119h56M11 15h10M6 20v-10M85 9h11v11M6 112v12h12M87 122h11v-12" opacity=".65" />
-              </svg>
-              <div class="standby-line">AWAITING INPUT<br><span style="font-size:10px;color:#628795">START CAMERA TO CONTINUE</span></div>
-            </div>
-            <video id="cameraVideo" autoplay muted playsinline hidden></video>
-            <canvas id="preview" hidden aria-label="撮影画像のプレビュー"></canvas>
-            <div class="focus-corners" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-            <div class="monitor-tag"><span>●</span><span id="monitorLabel">STANDBY / 00</span></div>
-            <div class="monitor-lower"><span id="monitorHelp">PALM DETECTION / READY</span><span>NO CLOUD UPLOAD</span></div>
-            <div class="scan-overlay" id="scanOverlay" hidden role="status" aria-live="polite">
-              <div class="scan-icon" aria-hidden="true"></div>
-              <div class="scan-label" id="scanLabel">画像を解析しています</div>
-              <div class="scan-sub" id="scanSub">手の形状を照合中...</div>
-              <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
-            </div>
-          </div>
-          <div class="monitor-foot"><span>INPUT : PHOTO / LIVE CAMERA</span><span>PROCESSING : ON DEVICE</span></div>
-        </section>
-
-        <section class="panel control-panel" aria-label="撮影操作">
-          <div class="panel-top"><span class="panel-title">OPERATION MANUAL</span><span class="panel-index">STEP 01 — 03</span></div>
-          <div class="control-body">
-            <h2>手を撮影してください</h2>
-            <p class="control-lead">手のひら、または手の甲が見えるように、片手をフレームの中央へ収めてください。</p>
-            <div class="button-stack">
-              <button type="button" class="btn btn-primary" id="startCamera"><span class="btn-icon">◎</span> カメラを起動</button>
-              <button type="button" class="btn btn-primary" id="takePhoto" hidden>このフレームを撮影 <span aria-hidden="true">→</span></button>
-              <button type="button" class="btn btn-outline" id="analyzePhoto" hidden>この画像を解析する <span aria-hidden="true">→</span></button>
-              <div class="two-btn" id="retakeRow" hidden>
-                <button type="button" class="btn btn-outline" id="retake">撮り直す</button>
-                <button type="button" class="btn btn-outline" id="newFile">別の画像を選ぶ</button>
+      <div class="intro">
+        <p class="intro-label">手の画像を用いた健康状態の予測</p>
+        <h1 id="captureTitle">手占い</h1>
+        <p class="intro-copy">最先端のAIがあなたの手を読み取り、健康状態を予測します。<br>片手を撮影して、解析結果を確認してください。</p>
+      </div>
+      <div class="layout">
+        <section class="paper" aria-label="撮影画面">
+          <div class="paper-head"><span class="head-accent" aria-hidden="true"></span><h2>手の撮影</h2></div>
+          <div class="photo-area">
+            <div class="monitor" id="monitor">
+              <div class="monitor-center" id="standby">
+                <svg class="palm-outline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 105 132" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M25 119c-4-12-10-21-16-34-3-7-1-12 5-14 5-2 9 2 14 10V25c0-7 3-11 9-11 6 0 8 5 8 11v23-33c0-7 3-11 9-11 5 0 8 5 8 11v32-23c0-8 3-12 9-12 5 0 8 4 8 11v31-16c0-7 3-11 9-11 6 0 8 5 8 11v43c0 24-14 38-18 48" />
+                  <path d="M24 119h56" opacity=".5" />
+                </svg>
+                <div class="standby-line">カメラまたは写真を選択してください</div>
               </div>
-              <button type="button" class="btn btn-outline" id="switchCamera" hidden>カメラを切り替える</button>
-              <button type="button" class="btn btn-ghost" id="chooseFile">カメラが使えない場合・写真から選ぶ <span aria-hidden="true">↗</span></button>
+              <video id="cameraVideo" autoplay muted playsinline hidden></video>
+              <canvas id="preview" hidden aria-label="撮影した手の写真"></canvas>
+              <div class="monitor-top" id="monitorLabel">撮影待機中</div>
+              <div class="monitor-bottom" id="monitorHelp">手が写るように撮影してください</div>
+              <div class="scan-overlay" id="scanOverlay" hidden role="status" aria-live="polite">
+                <div class="scan-icon" aria-hidden="true"></div>
+                <div class="scan-label" id="scanLabel">画像を解析しています</div>
+                <div class="scan-sub" id="scanSub">手の形状を照合中...</div>
+                <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+              </div>
             </div>
-            <ol class="procedure"><li><span class="procedure-n">01</span><span>カメラを起動する</span></li><li><span class="procedure-n">02</span><span>片手が写るように撮影する</span></li><li><span class="procedure-n">03</span><span>画像を解析して結果を確認する</span></li></ol>
-            <input type="file" id="fileInput" accept="image/*" style="display:none" aria-label="手の写真を選択する">
+            <p class="photo-foot">撮影は片手のみで行ってください。手のひら・手の甲のどちらでも撮影できます。</p>
+          </div>
+        </section>
+        <section class="paper control-card" aria-label="撮影の操作">
+          <div class="paper-head"><span class="head-accent" aria-hidden="true"></span><h2>撮影方法</h2></div>
+          <div class="control-content">
+            <p class="control-lead">明るい場所で片手をフレームの中央に写し、画像を撮影してください。</p>
+            <ol class="instructions"><li><span class="step">1</span><span>カメラを起動するか、写真を選ぶ</span></li><li><span class="step">2</span><span>手を大きく写して撮影する</span></li><li><span class="step">3</span><span>画像を解析して、結果を確認する</span></li></ol>
+            <div class="button-stack">
+              <button type="button" class="btn btn-primary" id="startCamera">カメラを起動</button>
+              <button type="button" class="btn btn-primary" id="takePhoto" hidden>撮影する</button>
+              <button type="button" class="btn btn-primary" id="analyzePhoto" hidden>画像を解析する</button>
+              <div class="two-btn" id="retakeRow" hidden><button type="button" class="btn btn-outline" id="retake">撮り直す</button><button type="button" class="btn btn-outline" id="newFile">別の写真を選ぶ</button></div>
+              <button type="button" class="btn btn-outline" id="switchCamera" hidden>前面・背面カメラを切り替える</button>
+              <button type="button" class="btn btn-ghost" id="chooseFile">保存済みの写真から選ぶ</button>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" hidden aria-label="手の写真を選択する">
             <div class="error-box" id="errorBox" hidden role="alert"></div>
-            <p class="micro-text" id="infoText">※ カメラの利用には許可が必要です。HTTPS接続の環境でご利用ください。</p>
+            <p class="micro-text" id="infoText">※カメラの起動には利用許可とHTTPS接続が必要です。</p>
           </div>
           <div class="privacy">
-            <svg width="18" height="21" viewBox="0 0 18 21" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="9" width="14" height="11" rx="2"/><path d="M5 9V6a4 4 0 018 0v3"/><path d="M9 13v3"/></svg>
-            <div><div class="privacy-title">プライバシー保護について</div><p>撮影画像はお使いの端末内で解析されます。サーバーへの画像送信や保存は行わず、ほかの利用者に共有・公開されることもありません。</p></div>
+            <svg width="18" height="20" viewBox="0 0 18 21" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="9" width="14" height="11" rx="2"/><path d="M5 9V6a4 4 0 018 0v3"/></svg>
+            <div><div class="privacy-title">撮影画像の取り扱い</div><p>写真はお使いの端末内だけで解析されます。画像がサーバーへ送信・保存されることはなく、ほかの人に共有・公開されることもありません。</p></div>
           </div>
         </section>
       </div>
     </section>
-
-    <!-- 2画面目 : 占い結果 -->
     <section id="resultScreen" class="result-wrap" aria-labelledby="resultTitle" hidden>
-      <div class="eyebrow"><span class="line"></span>ANALYSIS COMPLETED <span style="color:#718da1">/</span> MODULE 014</div>
-      <div class="hero-heading"><h1 style="font-size:clamp(32px,4.7vw,48px)">手占い</h1><span class="latin-heading">PERSONAL REPORT</span></div>
-      <p class="hero-desc">AIによる手の形状認識が完了しました。生成されたレポートをご確認ください。</p>
-      <article class="result-card">
-        <div class="result-header"><span class="panel-title">02 / ANALYSIS REPORT</span><span class="result-state"><span class="status-dot"></span>COMPLETED</span></div>
-        <div class="result-body">
-          <div class="result-overline">YOUR CONDITION / AI ASSESSMENT</div>
-          <h2 class="result-title" id="resultTitle">あなたの健康状態</h2>
-          <div class="result-rule"></div>
+      <div class="intro"><p class="intro-label">解析結果</p><h1>手占い</h1><p class="intro-copy">手の画像をもとにした解析が完了しました。</p></div>
+      <article class="paper result-card">
+        <div class="result-head"><h2 id="resultTitle">あなたの健康状態</h2><span class="result-status"><span class="status-dot"></span>解析完了</span></div>
+        <div class="result-content">
+          <p class="result-subheading">総合所見</p>
           <p class="fortune-main" id="fortuneMain"></p>
-          <div class="alert-block" aria-label="解析結果の追記"><div class="alert-code">ADDITIONAL FINDING / SYSTEM FLAG</div><p class="alert-text" id="alertText">体内に悪性の成分が検出されました。</p></div>
+          <div class="alert-block"><p class="alert-text" id="alertText">体内に悪性の成分が検出されました。</p></div>
         </div>
-        <div class="result-data"><span>PROCESS : <strong>COMPLETE</strong></span><span>INPUT CLASS : <strong>HAND</strong></span><span>DATA TRANSFER : <strong>NONE</strong></span></div>
+        <div class="report-foot">第０創薬化学研究所　／　手占い 解析レポート</div>
       </article>
-      <aside class="handoff" aria-label="ゲーム進行のご案内">
-        <div class="handoff-marker">ゲーム進行のご案内</div>
-        <h2>助手に、上の文章をコピーして送ってください。</h2>
-        <p>以下のボタンで解析結果の全文をコピーできます。コピーした文章を、助手とのLINEトークへ貼り付けて送信してください。</p>
-        <button type="button" class="btn btn-primary" id="copyResult"><span aria-hidden="true">▤</span> 解析結果をコピーする</button>
+      <aside class="handoff" aria-label="ゲームの進行案内">
+        <p class="handoff-label">次の操作</p>
+        <h2>助手に、次の文章を送ってください。</h2>
+        <p class="send-target" id="sendTarget">体内に悪性の成分が検出されました。</p>
+        <button type="button" class="btn btn-primary" id="copyResult">文章をコピーする</button>
         <div class="copy-status" role="status" id="copyStatus" aria-live="polite"></div>
-        <p class="handoff-note">※この結果は謎解きゲーム内の演出です。実際の健康状態や疾病を判定・診断するものではありません。</p>
+        <p class="game-note">※この解析結果は謎解きゲーム内の演出です。実際の健康状態や病気を診断するものではありません。</p>
       </aside>
-      <button type="button" class="reset-link" id="resetApp">← 最初からやり直す</button>
+      <button type="button" class="reset-link" id="resetApp">もう一度撮影する</button>
     </section>
   </main>
-
-  <footer class="footer"><div class="shell footer-row"><span>© 第０創薬化学研究所 / EXPERIMENTAL DIVISION</span><span>PALM READING SYSTEM — EXPERIMENTAL BUILD</span></div></footer>
-
+  <footer class="footer"><div class="shell">第０創薬化学研究所　｜　開発中の試験システム</div></footer>
   <script type="module">
+
     'use strict';
     // 本HTMLは静的ファイルです。撮影画像をサーバーへ送る処理はありません。
     // 手の判定のみGoogle MediaPipe（ブラウザ内処理）を利用します。
@@ -290,7 +227,7 @@
       info: $('infoText')
     };
     let currentStream = null;
-    let facingMode = 'environment';
+    let facingMode = 'user';
     let cameraActive = false;
     let photoReady = false;
     let isAnalyzing = false;
@@ -312,8 +249,8 @@
       elements.standby.hidden = state !== 'standby';
       elements.video.hidden = state !== 'camera';
       elements.preview.hidden = state !== 'preview';
-      elements.monitorLabel.textContent = ({standby:'STANDBY / 00',camera:'LIVE / 01',preview:'CAPTURED / 02'})[state];
-      elements.monitorHelp.textContent = ({standby:'PALM DETECTION / READY',camera:'POSITION YOUR HAND IN FRAME',preview:'IMAGE LOCKED / AWAITING ANALYSIS'})[state];
+      elements.monitorLabel.textContent = ({standby:'撮影待機中',camera:'カメラ起動中',preview:'撮影済み'})[state];
+      elements.monitorHelp.textContent = ({standby:'手が写るように撮影してください',camera:'片手をフレームの中央へ',preview:'写真を確認して解析に進んでください'})[state];
       cameraActive = state === 'camera';
       photoReady = state === 'preview';
     }
@@ -389,7 +326,7 @@
         else setError('カメラを起動できませんでした。別のカメラをお試しいただくか、写真から選択してください。');
       } finally {
         elements.start.disabled = false;
-        elements.start.innerHTML = '<span class="btn-icon">◎</span> カメラを起動';
+        elements.start.textContent = 'カメラを起動';
       }
     }
     function fitImage(source, width, height) {
@@ -466,7 +403,7 @@
       for (const variant of variants) {
         const target = variant.angle ? rotateCanvas(canvas,variant.angle) : canvas;
         try {
-          elements.scanSub.textContent = `手の形状を照合中... / ${variant.label}`;
+          elements.scanSub.textContent = `手の形状を照合中...  / ${variant.label}`;
           const result=detector.detect(target);
           if (result?.landmarks?.length > 1) recognizedMultipleHands = true;
           if (hasValidHand(result)) return {valid:true};
@@ -482,41 +419,33 @@
       } finally { mirror.width=mirror.height=0; }
       return {valid:false,multiple:recognizedMultipleHands};
     }
+    // 健康・脳活動の文章はゲーム内の創作です。手の写真から実際の健康情報を推定しません。
+    // 共通の脳活動所見を常に表示し、他の3つの所見を各4種類からランダムに選びます（64パターン）。
+    const BRAIN_FINDING = '特に脳の活動が活性化しており、ひらめき力が高まっている兆候が見られます。';
     const readings = {
       a: [
-        'あなたは周囲をよく観察し、物事を慎重に進められる人です。',
-        'あなたは好奇心を持ちながらも、決断には慎重になる傾向があります。',
-        'あなたは落ち着いた印象を持たれやすく、内面に強い情熱を秘めています。',
-        'あなたは自分なりのこだわりがあり、小さな変化にも気づける人です。',
-        'あなたは人とのつながりを大切にし、さりげない気配りが得意です。'
+        '体調はおおむね安定しており、大きな乱れは見られません。',
+        '全身の調子は比較的良好で、日常の活動を保てています。',
+        '身体の状態は概ね落ち着いていますが、小さな変化には注意が必要です。',
+        '日々のコンディションは安定しており、回復力も保たれています。'
       ],
       b: [
-        '最近は少し頑張りすぎて、気づかないうちに疲れをためているかもしれません。',
-        'いまは新しい刺激を求めつつ、心のどこかで安定も望んでいるようです。',
-        '何気ない出来事が気になり、つい深く考え込んでしまうこともありそうです。',
-        '自分の役割を優先するあまり、本音を後回しにする場面があるようです。',
-        '順調に見える日々のなかでも、少し立ち止まりたい気持ちがありそうです。'
+        '一方、疲れがたまると集中が続きにくくなる傾向があります。',
+        'ただし、睡眠不足が続くと疲労が残りやすくなるようです。',
+        'その反面、忙しい日が続くと心身の負担が増えやすい状態です。',
+        '一時的に疲れを感じやすいものの、休息で整えられるでしょう。'
       ],
       c: [
-        '身近な人と話す時間を増やせば、新しい発見につながるでしょう。',
-        'いつもと違う選択をしてみると、思わぬ良い流れが生まれそうです。',
-        '自分のペースを大切にすれば、気持ちが自然と整っていくでしょう。',
-        '小さな達成感を積み重ねることが、次の自信につながるでしょう。',
-        '無理に答えを急がず、直感に耳を傾けることが大切になりそうです。'
-      ],
-      d: [
-        '焦らず自分らしさを信じることで、これからの運気はゆるやかに上向くでしょう。',
-        '少しの休息と前向きな気持ちが、これからの毎日をより豊かにするでしょう。',
-        '何事も一度に変えようとせず、小さな一歩から始めるのがおすすめです。',
-        '今は心地よい習慣を取り戻すことが、日々の充実につながる時期です。',
-        '自分の気持ちに正直になることで、これまでとは違う景色が見えそうです。'
+        '十分な睡眠とこまめな水分補給を意識しましょう。',
+        '食事と休息のリズムを整えることが大切です。',
+        '無理をせず、適度な運動と休憩を心がけてください。',
+        '疲れを感じたら、早めに休むようにしてください。'
       ]
     };
-    function randomItem(list) { const i = Math.floor(Math.random()*list.length);return list[i]; }
+    function randomItem(list) { return list[Math.floor(Math.random()*list.length)]; }
     function buildFortune() {
-      // 4つの独立した文節を組み合わせ、結末の一文を固定する。
-      const result = randomItem(readings.a)+randomItem(readings.b)+randomItem(readings.c)+randomItem(readings.d);
-      return {main:result,full:result+'\n\n'+ALERT_LINE};
+      const main = '解析の結果、' + randomItem(readings.a) + BRAIN_FINDING + randomItem(readings.b) + randomItem(readings.c);
+      return {main,full:main + ALERT_LINE};
     }
     async function doAnalyze() {
       if (isAnalyzing || !photoReady) return;
@@ -536,14 +465,15 @@
           elements.scanSub.textContent='レポートを生成しています...';
           await sleep(430);
           const fortune=buildFortune();
-          fortuneText=fortune.full;
+          fortuneText=ALERT_LINE;
           elements.fortune.textContent=fortune.main;
           elements.alert.textContent=ALERT_LINE;
           elements.copyStatus.textContent='';
+          elements.copy.textContent='文章をコピーする';
           stopCamera();clearPhoto();
           setBusy(false);
           elements.capture.hidden=true;elements.result.hidden=false;
-          window.scrollTo({top:0,behavior:'instant'});
+          window.scrollTo({top:0,behavior:'auto'});
         } else {
           setBusy(false);
           setError(outcome.multiple ? '手が複数写っている可能性があります。片手だけを写して撮り直してください。' : '画像から手を認識できませんでした。足やほかの体の部位では判定できません。手を大きく写し、背景や角度を変えてもう一度お試しください。');
@@ -563,18 +493,18 @@
           temp.style.position='fixed';temp.style.opacity='0';document.body.appendChild(temp);
           temp.select(); const ok=document.execCommand('copy');temp.remove();if(!ok) throw Error('Copy failed');
         }
-        elements.copyStatus.textContent='コピーしました。助手とのLINEトークに貼り付けて送信してください。';
-        elements.copy.textContent='✓ コピーしました';
+        elements.copyStatus.textContent='コピーしました。助手とのLINEトークに貼り付けて送ってください。';
+        elements.copy.textContent='コピーしました';
       } catch(_) {
         elements.copyStatus.textContent='自動コピーできませんでした。ブラウザの権限設定をご確認ください。';
       }
     }
     function reset() {
       stopCamera();clearPhoto();setError();
-      fortuneText='';elements.fortune.textContent='';elements.copy.textContent='▤ 解析結果をコピーする';
+      fortuneText='';elements.fortune.textContent='';elements.copy.textContent='文章をコピーする';
       elements.copyStatus.textContent='';
       setState('standby');elements.result.hidden=true;elements.capture.hidden=false;
-      window.scrollTo({top:0,behavior:'instant'});
+      window.scrollTo({top:0,behavior:'auto'});
     }
     elements.start.addEventListener('click',openCamera);
     elements.shoot.addEventListener('click',takePicture);
@@ -594,7 +524,20 @@
         setError('カメラは一時停止しました。再度起動してください。');
       }
     });
+    // ロゴ画像が未配置の間は研究所名を文字で表示します。
+    // image/soyaku_logo.png をアップロードすると自動で画像に切り替わります。
+    const brandLogo = $('brandLogo');
+    const brandFallback = $('brandFallback');
+    function showBrandLogo() {
+      if (brandLogo.naturalWidth > 0) {
+        brandLogo.hidden = false;
+        brandFallback.hidden = true;
+      }
+    }
+    brandLogo.addEventListener('load', showBrandLogo);
+    if (brandLogo.complete) showBrandLogo();
     setState('standby');
+  
   </script>
 </body>
 </html>
