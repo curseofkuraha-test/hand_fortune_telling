@@ -111,6 +111,39 @@
     @media(max-width:800px){main{padding:32px 0 54px;}.layout{grid-template-columns:1fr;}.monitor{max-height:480px;}}
     @media(max-width:520px){.shell{width:min(100% - 32px,1040px);}.header-row{min-height:68px;}.brand-logo{max-width:185px;height:38px;}.brand-name{font-size:12px;}.dev-status{font-size:10px;padding-left:8px;}.intro{margin-bottom:24px;}.intro-copy{font-size:13px;}.paper-head{padding:16px 17px;}.photo-area{padding:13px;}.monitor{aspect-ratio:1/1;min-height:0;max-height:none;}.photo-foot{padding:0 2px;}.control-content{padding:20px 17px 17px;}.privacy{margin:0 17px;}.two-btn{grid-template-columns:1fr;}.result-head{padding:18px;}.result-head h2{font-size:22px;}.result-content{padding:22px 19px;}.fortune-main{font-size:14px;}.alert-text{font-size:15px;}.report-foot{padding:14px 19px;}.handoff{padding:21px 19px;}.handoff h2{font-size:16px;}.send-target{font-size:14px;}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}}
+
+    /* 撮影方法 → プレビュー → 撮影ボタンの一方向の操作導線 */
+    main{padding:38px 0 62px;}
+    #captureScreen{max-width:710px;margin-inline:auto;}
+    .capture-flow{display:grid;gap:18px;}
+    .instruction-panel .capture-instructions{padding:0 24px 6px;}
+    .instruction-panel .instructions{margin:0;padding:0;border-top:0;}
+    .instruction-panel .instructions li{font-size:14px;padding:13px 0;align-items:center;}
+    .instruction-panel .instructions li:last-child{border-bottom:0;}
+    .camera-panel .photo-area{padding:18px 22px 15px;}
+    .camera-panel .monitor{aspect-ratio:1.18;max-height:515px;min-height:0;}
+    .camera-actions{display:grid;gap:10px;margin-top:13px;}
+    .camera-actions .btn-primary{min-height:58px;font-size:16px;}
+    .camera-actions .btn-ghost{margin-top:0;min-height:38px;}
+    .camera-panel .photo-foot{margin:14px 0 0;}
+    .camera-panel .micro-text{margin:5px 0 0;}
+    .camera-panel .privacy{padding:16px 0 20px;}
+    .outside-section{margin-top:38px;padding:20px;background:#e9eef0;border-top:4px solid #d2e0e6;}
+    .outside-image{display:block;width:100%;height:auto;aspect-ratio:1 / 1;object-fit:contain;background:#fff;}
+    .result-wrap{max-width:760px;}
+    .reset-link{margin:19px auto 0;}
+    @media(max-width:520px){
+      main{padding:27px 0 48px;}
+      .capture-flow{gap:12px;}
+      .instruction-panel .capture-instructions{padding:0 16px 5px;}
+      .instruction-panel .instructions li{font-size:13px;padding:11px 0;gap:10px;}
+      .camera-panel .photo-area{padding:12px 12px 15px;}
+      .camera-panel .monitor{aspect-ratio:1 / 1;max-height:none;}
+      .camera-actions{margin-top:10px;gap:7px;}
+      .camera-actions .btn-primary{min-height:54px;}
+      .camera-panel .privacy{margin:0 15px;padding:15px 0 19px;}
+      .outside-section{margin-top:30px;padding:9px;border-top-width:3px;}
+    }
   </style>
 </head>
 <body>
@@ -130,8 +163,14 @@
         <h1 id="captureTitle">手占い</h1>
         <p class="intro-copy">最先端のAIがあなたの手を読み取り、健康状態を予測します。<br>片手を撮影して、解析結果を確認してください。</p>
       </div>
-      <div class="layout">
-        <section class="paper" aria-label="撮影画面">
+      <div class="capture-flow">
+        <section class="paper instruction-panel" aria-labelledby="howTitle">
+          <div class="paper-head"><span class="head-accent" aria-hidden="true"></span><h2 id="howTitle">撮影方法</h2></div>
+          <div class="capture-instructions">
+            <ol class="instructions"><li><span class="step">1</span><span>明るい場所で、片手をカメラの中央に写す</span></li><li><span class="step">2</span><span>手全体が入った状態で撮影する</span></li><li><span class="step">3</span><span>撮影した写真を確認し、解析する</span></li></ol>
+          </div>
+        </section>
+        <section class="paper camera-panel" aria-label="撮影と解析">
           <div class="paper-head"><span class="head-accent" aria-hidden="true"></span><h2>手の撮影</h2></div>
           <div class="photo-area">
             <div class="monitor" id="monitor">
@@ -140,7 +179,7 @@
                   <path d="M25 119c-4-12-10-21-16-34-3-7-1-12 5-14 5-2 9 2 14 10V25c0-7 3-11 9-11 6 0 8 5 8 11v23-33c0-7 3-11 9-11 5 0 8 5 8 11v32-23c0-8 3-12 9-12 5 0 8 4 8 11v31-16c0-7 3-11 9-11 6 0 8 5 8 11v43c0 24-14 38-18 48" />
                   <path d="M24 119h56" opacity=".5" />
                 </svg>
-                <div class="standby-line">カメラまたは写真を選択してください</div>
+                <div class="standby-line">カメラを起動して、片手を写してください</div>
               </div>
               <video id="cameraVideo" autoplay muted playsinline hidden></video>
               <canvas id="preview" hidden aria-label="撮影した手の写真"></canvas>
@@ -153,29 +192,22 @@
                 <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
               </div>
             </div>
-            <p class="photo-foot">撮影は片手のみで行ってください。手のひら・手の甲のどちらでも撮影できます。</p>
-          </div>
-        </section>
-        <section class="paper control-card" aria-label="撮影の操作">
-          <div class="paper-head"><span class="head-accent" aria-hidden="true"></span><h2>撮影方法</h2></div>
-          <div class="control-content">
-            <p class="control-lead">明るい場所で片手をフレームの中央に写し、画像を撮影してください。</p>
-            <ol class="instructions"><li><span class="step">1</span><span>カメラを起動するか、写真を選ぶ</span></li><li><span class="step">2</span><span>手を大きく写して撮影する</span></li><li><span class="step">3</span><span>画像を解析して、結果を確認する</span></li></ol>
-            <div class="button-stack">
-              <button type="button" class="btn btn-primary" id="startCamera">カメラを起動</button>
-              <button type="button" class="btn btn-primary" id="takePhoto" hidden>撮影する</button>
-              <button type="button" class="btn btn-primary" id="analyzePhoto" hidden>画像を解析する</button>
+            <div class="camera-actions" aria-label="カメラの操作">
+              <button type="button" class="btn btn-primary" id="startCamera">カメラを起動する</button>
+              <button type="button" class="btn btn-primary shutter-btn" id="takePhoto" hidden>撮影する</button>
+              <button type="button" class="btn btn-primary" id="analyzePhoto" hidden>この写真を解析する</button>
               <div class="two-btn" id="retakeRow" hidden><button type="button" class="btn btn-outline" id="retake">撮り直す</button><button type="button" class="btn btn-outline" id="newFile">別の写真を選ぶ</button></div>
-              <button type="button" class="btn btn-outline" id="switchCamera" hidden>前面・背面カメラを切り替える</button>
+              <button type="button" class="btn btn-outline" id="switchCamera" hidden>内カメラに切り替える</button>
               <button type="button" class="btn btn-ghost" id="chooseFile">保存済みの写真から選ぶ</button>
             </div>
             <input type="file" id="fileInput" accept="image/*" hidden aria-label="手の写真を選択する">
             <div class="error-box" id="errorBox" hidden role="alert"></div>
-            <p class="micro-text" id="infoText">※カメラの起動には利用許可とHTTPS接続が必要です。</p>
+            <p class="photo-foot">片手だけを写してください。手のひら・手の甲のどちらでも撮影できます。</p>
+            <p class="micro-text" id="infoText">※カメラには利用許可とHTTPS接続が必要です。外カメラを優先して起動します。</p>
           </div>
           <div class="privacy">
             <svg width="18" height="20" viewBox="0 0 18 21" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="9" width="14" height="11" rx="2"/><path d="M5 9V6a4 4 0 018 0v3"/></svg>
-            <div><div class="privacy-title">撮影画像の取り扱い</div><p>写真はお使いの端末内だけで解析されます。画像がサーバーへ送信・保存されることはなく、ほかの人に共有・公開されることもありません。</p></div>
+            <div><div class="privacy-title">撮影画像の取り扱い</div><p>写真はお使いの端末内だけで解析されます。撮影画像がサーバーに送信・保存されたり、ほかの人に公開・共有されたりすることはありません。</p></div>
           </div>
         </section>
       </div>
@@ -191,15 +223,10 @@
         </div>
         <div class="report-foot">第０創薬化学研究所　／　手占い 解析レポート</div>
       </article>
-      <aside class="handoff" aria-label="ゲームの進行案内">
-        <p class="handoff-label">次の操作</p>
-        <h2>助手に、次の文章を送ってください。</h2>
-        <p class="send-target" id="sendTarget">体内に悪性の成分が検出されました。</p>
-        <button type="button" class="btn btn-primary" id="copyResult">文章をコピーする</button>
-        <div class="copy-status" role="status" id="copyStatus" aria-live="polite"></div>
-        <p class="game-note">※この解析結果は謎解きゲーム内の演出です。実際の健康状態や病気を診断するものではありません。</p>
-      </aside>
       <button type="button" class="reset-link" id="resetApp">もう一度撮影する</button>
+      <section class="outside-section" aria-label="ひらめき弁当からのご案内">
+        <img src="./image/hand_result.png" alt="ひらめき弁当をご購入いただきありがとうございます。ここまでたどり着いてくださるのをお待ちしておりました。ひらめき力が向上したあなたへ。「の次」を「の前」にして指示に従ってください。その先でお待ちしています。" width="1210" height="1210" class="outside-image">
+      </section>
     </section>
   </main>
   <footer class="footer"><div class="shell">第０創薬化学研究所　｜　開発中の試験システム</div></footer>
@@ -223,16 +250,15 @@
       start: $('startCamera'), shoot: $('takePhoto'), analyze: $('analyzePhoto'),
       retakeRow: $('retakeRow'), retake: $('retake'), newFile: $('newFile'), switch: $('switchCamera'),
       choose: $('chooseFile'), file: $('fileInput'), fortune: $('fortuneMain'),
-      alert: $('alertText'), copy: $('copyResult'), copyStatus: $('copyStatus'), reset: $('resetApp'),
+      alert: $('alertText'), reset: $('resetApp'),
       info: $('infoText')
     };
     let currentStream = null;
-    let facingMode = 'user';
+    let facingMode = 'environment';
     let cameraActive = false;
     let photoReady = false;
     let isAnalyzing = false;
     let detectorPromise = null;
-    let fortuneText = '';
     let progressTimer = null;
 
     function setError(message = '') {
@@ -317,6 +343,7 @@
         elements.video.classList.toggle('is-mirrored',facingMode === 'user');
         await elements.video.play();
         setState('camera');
+        elements.switch.textContent = facingMode === 'environment' ? '内カメラに切り替える' : '外カメラに切り替える';
         // カメラ操作と並行して認識モデルを準備する（未使用のPromise rejectionを抑止）
         preloadDetector().catch(() => {});
       } catch (err) {
@@ -326,7 +353,7 @@
         else setError('カメラを起動できませんでした。別のカメラをお試しいただくか、写真から選択してください。');
       } finally {
         elements.start.disabled = false;
-        elements.start.textContent = 'カメラを起動';
+        elements.start.textContent = 'カメラを起動する';
       }
     }
     function fitImage(source, width, height) {
@@ -465,11 +492,8 @@
           elements.scanSub.textContent='レポートを生成しています...';
           await sleep(430);
           const fortune=buildFortune();
-          fortuneText=ALERT_LINE;
           elements.fortune.textContent=fortune.main;
           elements.alert.textContent=ALERT_LINE;
-          elements.copyStatus.textContent='';
-          elements.copy.textContent='文章をコピーする';
           stopCamera();clearPhoto();
           setBusy(false);
           elements.capture.hidden=true;elements.result.hidden=false;
@@ -484,25 +508,9 @@
         setError('AI認識モデルを読み込めませんでした。ネットワーク接続をご確認のうえ、再度「この画像を解析する」を押してください。画像は送信されていません。');
       }
     }
-    async function copyFullResult() {
-      if(!fortuneText) return;
-      try {
-        if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(fortuneText);
-        else {
-          const temp=document.createElement('textarea'); temp.value=fortuneText;
-          temp.style.position='fixed';temp.style.opacity='0';document.body.appendChild(temp);
-          temp.select(); const ok=document.execCommand('copy');temp.remove();if(!ok) throw Error('Copy failed');
-        }
-        elements.copyStatus.textContent='コピーしました。助手とのLINEトークに貼り付けて送ってください。';
-        elements.copy.textContent='コピーしました';
-      } catch(_) {
-        elements.copyStatus.textContent='自動コピーできませんでした。ブラウザの権限設定をご確認ください。';
-      }
-    }
     function reset() {
       stopCamera();clearPhoto();setError();
-      fortuneText='';elements.fortune.textContent='';elements.copy.textContent='文章をコピーする';
-      elements.copyStatus.textContent='';
+      elements.fortune.textContent='';
       setState('standby');elements.result.hidden=true;elements.capture.hidden=false;
       window.scrollTo({top:0,behavior:'auto'});
     }
@@ -514,7 +522,6 @@
     elements.choose.addEventListener('click',()=>elements.file.click());
     elements.newFile.addEventListener('click',()=>elements.file.click());
     elements.file.addEventListener('change',e=>readFile(e.target.files?.[0]));
-    elements.copy.addEventListener('click',copyFullResult);
     elements.reset.addEventListener('click',reset);
     window.addEventListener('pagehide',stopCamera);
     document.addEventListener('visibilitychange',() => {
