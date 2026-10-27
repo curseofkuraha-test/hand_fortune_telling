@@ -144,6 +144,26 @@
       .camera-panel .privacy{margin:0 15px;padding:15px 0 19px;}
       .outside-section{margin-top:30px;padding:9px;border-top-width:3px;}
     }
+
+    /* 解析に使用した写真。指先の判定は写真上の座標に追従する。 */
+    .photo-record{margin-top:20px;overflow:hidden;}
+    .photo-record-head{padding:17px 23px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .photo-record-head h2{font-size:17px;}
+    .photo-record-body{padding:18px 20px 20px;display:flex;justify-content:center;background:#f8fafb;}
+    .photo-record-canvas{display:block;width:auto;height:auto;max-width:100%;max-height:410px;cursor:default;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;border:1px solid #dce7ec;background:#f1f5f7;}
+    .photo-record-foot{padding:11px 23px 15px;font-size:11px;line-height:1.7;color:var(--sub);}
+    .puzzle-dialog[hidden]{display:none!important;}
+    .puzzle-dialog{position:fixed;inset:0;z-index:1000;background:rgba(26,39,47,.67);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom));}
+    .puzzle-panel{background:#fff;width:min(100%,740px);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;border:1px solid #dbe4e8;box-shadow:0 15px 45px rgba(0,0,0,.23);}
+    .puzzle-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);}
+    .puzzle-head h2{font-size:17px;}
+    .puzzle-close{height:42px;width:42px;flex:none;border:1px solid #dbe4e8;background:#fff;color:#293946;font-size:27px;line-height:1;display:grid;place-items:center;}
+    .puzzle-close:hover{background:#f3f7f8;}
+    .puzzle-body{padding:12px;overflow:auto;overscroll-behavior:contain;}
+    .puzzle-image{display:block;width:100%;height:auto;max-height:calc(100dvh - 130px);object-fit:contain;}
+    .puzzle-fallback{padding:50px 15px;text-align:center;line-height:1.8;color:var(--sub);}
+    body.dialog-open{overflow:hidden;}
+    @media(max-width:520px){.photo-record-head{padding:14px 17px;}.photo-record-body{padding:11px;}.photo-record-canvas{max-height:420px;}.photo-record-foot{padding:10px 16px 14px;}.puzzle-head{padding:9px 12px;}.puzzle-body{padding:7px;}}
   </style>
 </head>
 <body>
@@ -167,7 +187,7 @@
         <section class="paper instruction-panel" aria-labelledby="howTitle">
           <div class="paper-head"><span class="head-accent" aria-hidden="true"></span><h2 id="howTitle">撮影方法</h2></div>
           <div class="capture-instructions">
-            <ol class="instructions"><li><span class="step">1</span><span>明るい場所で、片手をカメラの中央に写す</span></li><li><span class="step">2</span><span>手全体が入った状態で撮影する</span></li><li><span class="step">3</span><span>撮影した写真を確認し、解析する</span></li></ol>
+            <ol class="instructions"><li><span class="step">1</span><span>手のひらか手の甲を、カメラに正面から向ける</span></li><li><span class="step">2</span><span>指を自然に伸ばし、手首から指先まで入れる</span></li><li><span class="step">3</span><span>明るい場所で、傾かないように撮影・解析する</span></li></ol>
           </div>
         </section>
         <section class="paper camera-panel" aria-label="撮影と解析">
@@ -202,7 +222,7 @@
             </div>
             <input type="file" id="fileInput" accept="image/*" hidden aria-label="手の写真を選択する">
             <div class="error-box" id="errorBox" hidden role="alert"></div>
-            <p class="photo-foot">片手だけを写してください。手のひら・手の甲のどちらでも撮影できます。</p>
+            <p class="photo-foot">片手の手のひら・手の甲を正面から撮影してください。手の側面や斜めからの写真は認識できない場合があります。</p>
             <p class="micro-text" id="infoText">※カメラには利用許可とHTTPS接続が必要です。外カメラを優先して起動します。</p>
           </div>
           <div class="privacy">
@@ -223,12 +243,28 @@
         </div>
         <div class="report-foot">第０創薬化学研究所　／　手占い 解析レポート</div>
       </article>
+      <section class="paper photo-record" aria-label="解析に使用した写真">
+        <div class="photo-record-head"><h2>解析画像</h2></div>
+        <div class="photo-record-body">
+          <canvas id="resultPhoto" class="photo-record-canvas" role="img" aria-label="解析に使用した手の写真"></canvas>
+        </div>
+        <p class="photo-record-foot">この写真は、端末内でのみ一時的に表示されています。</p>
+      </section>
       <button type="button" class="reset-link" id="resetApp">もう一度撮影する</button>
       <section class="outside-section" aria-label="ひらめき弁当からのご案内">
         <img src="./image/hand_result.png" alt="ひらめき弁当をご購入いただきありがとうございます。ここまでたどり着いてくださるのをお待ちしておりました。ひらめき力が向上したあなたへ。「の次」を「の前」にして指示に従ってください。その先でお待ちしています。" width="1210" height="1210" class="outside-image">
       </section>
     </section>
   </main>
+  <div class="puzzle-dialog" id="puzzleDialog" role="dialog" aria-modal="true" aria-labelledby="puzzleTitle" hidden>
+    <div class="puzzle-panel" id="puzzlePanel">
+      <div class="puzzle-head"><h2 id="puzzleTitle">追加資料</h2><button type="button" id="puzzleClose" class="puzzle-close" aria-label="閉じる">×</button></div>
+      <div class="puzzle-body">
+        <img id="puzzleImage" class="puzzle-image" src="./image/finger_puzzle.png" alt="追加の謎" hidden>
+        <p id="puzzleFallback" class="puzzle-fallback" hidden>追加資料を表示できませんでした。</p>
+      </div>
+    </div>
+  </div>
   <footer class="footer"><div class="shell">第０創薬化学研究所　｜　開発中の試験システム</div></footer>
   <script type="module">
 
@@ -241,6 +277,10 @@
     const MP_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`;
     const MP_MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
     const ALERT_LINE = '体内に悪性の成分が検出されました。';
+    // 謎の設定：'middle' は中指固定。'any' にすると「同じ指先を5回」に変更できます。
+    const FINGERTIP_MODE = 'middle';
+    const REQUIRED_FINGER_TAPS = 5;
+    const FINGERTIP_INDEXES = [4,8,12,16,20];
     const $ = (id) => document.getElementById(id);
     const elements = {
       capture: $('captureScreen'), result: $('resultScreen'), video: $('cameraVideo'),
@@ -250,7 +290,9 @@
       start: $('startCamera'), shoot: $('takePhoto'), analyze: $('analyzePhoto'),
       retakeRow: $('retakeRow'), retake: $('retake'), newFile: $('newFile'), switch: $('switchCamera'),
       choose: $('chooseFile'), file: $('fileInput'), fortune: $('fortuneMain'),
-      alert: $('alertText'), reset: $('resetApp'),
+      alert: $('alertText'), reset: $('resetApp'), resultPhoto: $('resultPhoto'),
+      puzzleDialog: $('puzzleDialog'), puzzleClose: $('puzzleClose'), puzzleImage: $('puzzleImage'),
+      puzzleFallback: $('puzzleFallback'),
       info: $('infoText')
     };
     let currentStream = null;
@@ -260,6 +302,11 @@
     let isAnalyzing = false;
     let detectorPromise = null;
     let progressTimer = null;
+    let recognizedLandmarks = null; // 元画像の正規化座標（回転・左右反転後も元に戻す）
+    let lastTappedFinger = null;
+    let fingerTapCount = 0;
+    let pointerDownStart = null;
+    let focusBeforeDialog = null;
 
     function setError(message = '') {
       elements.error.hidden = !message;
@@ -412,9 +459,7 @@
       return target;
     }
     function hasValidHand(result) {
-      if (!result?.landmarks?.length) return false;
-      // 片手だけを対象とする。足・他の部位を許可する例外判定は設けない。
-      if (result.landmarks.length !== 1) return false;
+      if (!result?.landmarks?.length || result.landmarks.length !== 1) return false;
       const pts = result.landmarks[0];
       if (!pts || pts.length !== 21 || pts.some(p => !Number.isFinite(p.x)||!Number.isFinite(p.y))) return false;
       const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
@@ -422,29 +467,70 @@
       const handScore = result.handedness?.[0]?.[0]?.score ?? 0;
       return width > 0.085 && height > 0.085 && handScore >= 0.5;
     }
+    // 手のひら/手の甲「正面」らしさを手の付け根の広がり・掌の3D面から近似する。
+    // 通常のカメラ1枚では、甲とひらの厳密な識別や角度の保証はできない。
+    function isApproximatelyFrontal(result, imageWidth, imageHeight) {
+      const p=result.landmarks[0];
+      const distance=(a,b)=>Math.hypot((p[a].x-p[b].x)*imageWidth,(p[a].y-p[b].y)*imageHeight);
+      const palmWidth=distance(5,17), palmLength=distance(0,9);
+      if (palmLength < 1 || palmWidth / palmLength < 0.43) return false;
+      const tip=p[12];
+      if (FINGERTIP_MODE === 'middle' &&
+          (tip.x < .018 || tip.x > .982 || tip.y < .018 || tip.y > .982 ||
+           distance(0,12) < distance(0,9)*1.35)) return false;
+      // 横を向けた手は掌の平面がカメラに対して傾く。3D推定値があれば補助判定。
+      const world=result.worldLandmarks?.[0];
+      if (world?.length === 21) {
+        const a=world[5], b=world[17], c=world[0];
+        const u=[a.x-c.x,a.y-c.y,a.z-c.z];
+        const v=[b.x-c.x,b.y-c.y,b.z-c.z];
+        const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+        const length=Math.hypot(...n);
+        if (length > 1e-7 && Math.abs(n[2])/length < .38) return false;
+      }
+      return true;
+    }
+    function landmarksToOriginal(landmarks, transform) {
+      // 変換後画像の座標から、表示する元写真の座標へ戻す。
+      return landmarks.map(({x,y,z})=> {
+        if (transform === 180) return {x:1-x,y:1-y,z};
+        if (transform === 90) return {x:y,y:1-x,z};
+        if (transform === -90) return {x:1-y,y:x,z};
+        if (transform === 'mirror') return {x:1-x,y,z};
+        return {x,y,z};
+      });
+    }
     function sleep(ms) { return new Promise(resolve => setTimeout(resolve,ms)); }
     async function verifyHand(detector, canvas) {
-      // 斜め・左右反転に配慮した複数方向の推論。肌色のしきい値や指の本数は使わない。
+      // 縦横の持ち方を補正するが、指先は必ず元写真に戻して記録する。
       const variants = [ {angle:0,label:'基本姿勢'}, {angle:180,label:'向きの補正'}, {angle:90,label:'角度の補正'}, {angle:-90,label:'角度の補正'} ];
       let recognizedMultipleHands = false;
+      let recognizedButOblique = false;
       for (const variant of variants) {
         const target = variant.angle ? rotateCanvas(canvas,variant.angle) : canvas;
         try {
           elements.scanSub.textContent = `手の形状を照合中...  / ${variant.label}`;
           const result=detector.detect(target);
           if (result?.landmarks?.length > 1) recognizedMultipleHands = true;
-          if (hasValidHand(result)) return {valid:true};
+          if (hasValidHand(result)) {
+            if (isApproximatelyFrontal(result,target.width,target.height))
+              return {valid:true,landmarks:landmarksToOriginal(result.landmarks[0],variant.angle)};
+            recognizedButOblique = true;
+          }
         } finally { if (target!==canvas) target.width=target.height=0; }
         await sleep(30);
       }
-      // 一度も認識されなかった場合のみ、左右反転を追加。
       const mirror=mirrorCanvas(canvas);
       try {
-        const r=detector.detect(mirror);
-        if(r?.landmarks?.length>1) recognizedMultipleHands=true;
-        if(hasValidHand(r)) return {valid:true};
+        const result=detector.detect(mirror);
+        if(result?.landmarks?.length>1) recognizedMultipleHands=true;
+        if(hasValidHand(result)) {
+          if(isApproximatelyFrontal(result,mirror.width,mirror.height))
+            return {valid:true,landmarks:landmarksToOriginal(result.landmarks[0],'mirror')};
+          recognizedButOblique=true;
+        }
       } finally { mirror.width=mirror.height=0; }
-      return {valid:false,multiple:recognizedMultipleHands};
+      return {valid:false,multiple:recognizedMultipleHands,oblique:recognizedButOblique};
     }
     // 健康・脳活動の文章はゲーム内の創作です。手の写真から実際の健康情報を推定しません。
     // 共通の脳活動所見を常に表示し、他の3つの所見を各4種類からランダムに選びます（64パターン）。
@@ -494,13 +580,19 @@
           const fortune=buildFortune();
           elements.fortune.textContent=fortune.main;
           elements.alert.textContent=ALERT_LINE;
+          recognizedLandmarks=outcome.landmarks;
+          const photo=elements.resultPhoto;
+          photo.width=elements.preview.width;
+          photo.height=elements.preview.height;
+          photo.getContext('2d').drawImage(elements.preview,0,0);
+          fingerTapCount=0;lastTappedFinger=null;
           stopCamera();clearPhoto();
           setBusy(false);
           elements.capture.hidden=true;elements.result.hidden=false;
           window.scrollTo({top:0,behavior:'auto'});
         } else {
           setBusy(false);
-          setError(outcome.multiple ? '手が複数写っている可能性があります。片手だけを写して撮り直してください。' : '画像から手を認識できませんでした。足やほかの体の部位では判定できません。手を大きく写し、背景や角度を変えてもう一度お試しください。');
+          setError(outcome.multiple ? '手が複数写っている可能性があります。片手だけを写して撮り直してください。' : outcome.oblique ? '手の側面や斜めの向きでは判定できません。手のひらか手の甲をカメラにまっすぐ向け、指を伸ばして撮り直してください。' : '画像から手を認識できませんでした。手のひらか手の甲を正面から大きく写し、明るい場所でもう一度お試しください。');
         }
       } catch(err) {
         console.error('Hand model initialization / detection failed:',err);
@@ -511,9 +603,70 @@
     function reset() {
       stopCamera();clearPhoto();setError();
       elements.fortune.textContent='';
+      recognizedLandmarks=null;fingerTapCount=0;lastTappedFinger=null;
+      const photo=elements.resultPhoto;photo.width=0;photo.height=0;
+      closePuzzle();
       setState('standby');elements.result.hidden=true;elements.capture.hidden=false;
       window.scrollTo({top:0,behavior:'auto'});
     }
+    function openPuzzle() {
+      focusBeforeDialog=document.activeElement;
+      elements.puzzleDialog.hidden=false;
+      document.body.classList.add('dialog-open');
+      const picture=elements.puzzleImage;
+      elements.puzzleFallback.hidden=true;
+      picture.hidden=true;
+      // すでにロードされていた画像も再表示できる。
+      if(picture.complete) {
+        if(picture.naturalWidth) picture.hidden=false;
+        else elements.puzzleFallback.hidden=false;
+      }
+      elements.puzzleClose.focus();
+    }
+    function closePuzzle() {
+      elements.puzzleDialog.hidden=true;
+      document.body.classList.remove('dialog-open');
+      if(focusBeforeDialog?.isConnected) focusBeforeDialog.focus({preventScroll:true});
+      focusBeforeDialog=null;
+    }
+    function registerPhotoTap(clientX,clientY) {
+      if(!recognizedLandmarks || elements.result.hidden || !elements.puzzleDialog.hidden) return;
+      const rect=elements.resultPhoto.getBoundingClientRect();
+      if(!rect.width || !rect.height) return;
+      const candidates=FINGERTIP_INDEXES.map(index=>({
+        index,
+        distance:Math.hypot(recognizedLandmarks[index].x*rect.width-(clientX-rect.left),recognizedLandmarks[index].y*rect.height-(clientY-rect.top))
+      })).sort((a,b)=>a.distance-b.distance);
+      // 画面サイズが違っても押しやすい半径。最も近い指先だけを採用。
+      const radius=Math.max(22,Math.min(36,rect.width*.075));
+      const nearest=candidates[0];
+      const picked=nearest.distance<=radius && (FINGERTIP_MODE==='any' || nearest.index===12)?nearest.index:null;
+      if(picked===null) {lastTappedFinger=null;fingerTapCount=0;return;}
+      if(lastTappedFinger!==picked) {lastTappedFinger=picked;fingerTapCount=0;}
+      fingerTapCount++;
+      if(fingerTapCount>=REQUIRED_FINGER_TAPS){fingerTapCount=0;lastTappedFinger=null;openPuzzle();}
+    }
+    elements.resultPhoto.addEventListener('pointerdown',event=> {
+      if(event.button!==0) return;
+      pointerDownStart={id:event.pointerId,x:event.clientX,y:event.clientY};
+    });
+    elements.resultPhoto.addEventListener('pointerup',event=> {
+      const start=pointerDownStart;pointerDownStart=null;
+      if(!start || start.id!==event.pointerId || Math.hypot(start.x-event.clientX,start.y-event.clientY)>14) return;
+      registerPhotoTap(event.clientX,event.clientY);
+    });
+    elements.resultPhoto.addEventListener('pointercancel',()=>{pointerDownStart=null;});
+    elements.puzzleImage.addEventListener('load',()=>{elements.puzzleImage.hidden=false;elements.puzzleFallback.hidden=true;});
+    elements.puzzleImage.addEventListener('error',()=>{elements.puzzleImage.hidden=true;elements.puzzleFallback.hidden=false;});
+    elements.puzzleClose.addEventListener('click',closePuzzle);
+    elements.puzzleDialog.addEventListener('click',event=>{if(event.target===elements.puzzleDialog)closePuzzle();});
+    document.addEventListener('keydown',event=>{
+      if(elements.puzzleDialog.hidden) return;
+      if(event.key==='Escape'){event.preventDefault();closePuzzle();}
+      if(event.key==='Tab') { // ダイアログ内の唯一の操作ボタンへフォーカスを維持
+        event.preventDefault();elements.puzzleClose.focus();
+      }
+    });
     elements.start.addEventListener('click',openCamera);
     elements.shoot.addEventListener('click',takePicture);
     elements.analyze.addEventListener('click',doAnalyze);
