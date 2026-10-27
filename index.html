@@ -146,11 +146,11 @@
     }
 
     /* 解析に使用した写真。指先の判定は写真上の座標に追従する。 */
-    .photo-record{margin-top:20px;overflow:hidden;}
+    .photo-record{margin-top:0;margin-bottom:20px;overflow:hidden;}
     .photo-record-head{padding:17px 23px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;}
     .photo-record-head h2{font-size:17px;}
     .photo-record-body{padding:18px 20px 20px;display:flex;justify-content:center;background:#f8fafb;}
-    .photo-record-canvas{display:block;width:auto;height:auto;max-width:100%;max-height:410px;cursor:default;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;border:1px solid #dce7ec;background:#f1f5f7;}
+    .photo-record-canvas{display:block;width:auto;height:auto;max-width:100%;max-height:500px;cursor:default;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;border:1px solid #dce7ec;background:#f1f5f7;}
     .photo-record-foot{padding:11px 23px 15px;font-size:11px;line-height:1.7;color:var(--sub);}
     .puzzle-dialog[hidden]{display:none!important;}
     .puzzle-dialog{position:fixed;inset:0;z-index:1000;background:rgba(26,39,47,.67);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom));}
@@ -163,7 +163,7 @@
     .puzzle-image{display:block;width:100%;height:auto;max-height:calc(100dvh - 130px);object-fit:contain;}
     .puzzle-fallback{padding:50px 15px;text-align:center;line-height:1.8;color:var(--sub);}
     body.dialog-open{overflow:hidden;}
-    @media(max-width:520px){.photo-record-head{padding:14px 17px;}.photo-record-body{padding:11px;}.photo-record-canvas{max-height:420px;}.photo-record-foot{padding:10px 16px 14px;}.puzzle-head{padding:9px 12px;}.puzzle-body{padding:7px;}}
+    @media(max-width:520px){.photo-record-head{padding:14px 17px;}.photo-record-body{padding:11px;}.photo-record-canvas{max-height:440px;}.photo-record-foot{padding:10px 16px 14px;}.puzzle-head{padding:9px 12px;}.puzzle-body{padding:7px;}}
   </style>
 </head>
 <body>
@@ -234,6 +234,13 @@
     </section>
     <section id="resultScreen" class="result-wrap" aria-labelledby="resultTitle" hidden>
       <div class="intro"><p class="intro-label">解析結果</p><h1>手占い</h1><p class="intro-copy">手の画像をもとにした解析が完了しました。</p></div>
+      <section class="paper photo-record" aria-label="解析に使用した写真">
+        <div class="photo-record-head"><h2>解析画像</h2></div>
+        <div class="photo-record-body">
+          <canvas id="resultPhoto" class="photo-record-canvas" role="img" aria-label="解析に使用した手の写真"></canvas>
+        </div>
+        <p class="photo-record-foot">この写真は、端末内でのみ一時的に表示されています。</p>
+      </section>
       <article class="paper result-card">
         <div class="result-head"><h2 id="resultTitle">あなたの健康状態</h2><span class="result-status"><span class="status-dot"></span>解析完了</span></div>
         <div class="result-content">
@@ -243,13 +250,6 @@
         </div>
         <div class="report-foot">第０創薬化学研究所　／　手占い 解析レポート</div>
       </article>
-      <section class="paper photo-record" aria-label="解析に使用した写真">
-        <div class="photo-record-head"><h2>解析画像</h2></div>
-        <div class="photo-record-body">
-          <canvas id="resultPhoto" class="photo-record-canvas" role="img" aria-label="解析に使用した手の写真"></canvas>
-        </div>
-        <p class="photo-record-foot">この写真は、端末内でのみ一時的に表示されています。</p>
-      </section>
       <button type="button" class="reset-link" id="resetApp">もう一度撮影する</button>
       <section class="outside-section" aria-label="ひらめき弁当からのご案内">
         <img src="./image/hand_result.png" alt="ひらめき弁当をご購入いただきありがとうございます。ここまでたどり着いてくださるのをお待ちしておりました。ひらめき力が向上したあなたへ。「の次」を「の前」にして指示に従ってください。その先でお待ちしています。" width="1210" height="1210" class="outside-image">
@@ -580,6 +580,7 @@
           const fortune=buildFortune();
           elements.fortune.textContent=fortune.main;
           elements.alert.textContent=ALERT_LINE;
+          // 解析時の写真と指先座標を結果画面へ保持し、表示された画像上でタップを判定する。
           recognizedLandmarks=outcome.landmarks;
           const photo=elements.resultPhoto;
           photo.width=elements.preview.width;
@@ -638,7 +639,7 @@
         distance:Math.hypot(recognizedLandmarks[index].x*rect.width-(clientX-rect.left),recognizedLandmarks[index].y*rect.height-(clientY-rect.top))
       })).sort((a,b)=>a.distance-b.distance);
       // 画面サイズが違っても押しやすい半径。最も近い指先だけを採用。
-      const radius=Math.max(22,Math.min(36,rect.width*.075));
+      const radius=Math.max(24,Math.min(42,Math.min(rect.width,rect.height)*.10));
       const nearest=candidates[0];
       const picked=nearest.distance<=radius && (FINGERTIP_MODE==='any' || nearest.index===12)?nearest.index:null;
       if(picked===null) {lastTappedFinger=null;fingerTapCount=0;return;}
