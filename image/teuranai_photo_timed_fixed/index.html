@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="第０創薬化学研究所が開発中の手占いシステム。手を撮影して、健康状態のレポートを表示します。">
+  <title>手占い｜第０創薬化学研究所</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --white:#ffffff;
+      --bg:#f7f9fa;
+      --ink:#273847;
+      --sub:#617582;
+      --muted:#7f9099;
+      --line:#dfe7ea;
+      --blue:#167ca8;
+      --blue-deep:#126589;
+      --blue-light:#eaf5fa;
+      --orange:#e98b37;
+      --orange-light:#fff5eb;
+      --r:5px;
+      font-family:-apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+    }
+    * ,*::before,*::after {box-sizing:border-box;}
+    html{scroll-behavior:auto;}
+    body{background:var(--bg);color:var(--ink);margin:0;min-height:100vh;font-size:15px;-webkit-font-smoothing:antialiased;}
+    [hidden]{display:none!important;}
+    button{font:inherit;cursor:pointer;}
+    button:disabled{opacity:.56;cursor:not-allowed;}
+    button:focus-visible{outline:3px solid #91cddd;outline-offset:3px;}
+    .shell{width:min(100% - 48px,1040px);margin-inline:auto;}
+    .site-header{background:#fff;border-bottom:1px solid var(--line);}
+    .header-row{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:15px;}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;}
+    .brand-logo{display:block;max-width:280px;height:50px;width:auto;object-fit:contain;object-position:left center;}
+    .brand-name{font-size:15px;letter-spacing:.06em;font-weight:700;}
+    .dev-status{color:var(--sub);font-size:12px;border-left:2px solid var(--orange);padding:3px 0 3px 12px;}
+    main{padding:48px 0 64px;}
+    .intro{margin-bottom:30px;}
+    .intro-label{font-size:12px;color:var(--blue);font-weight:700;margin:0 0 9px;}
+    h1{font-size:clamp(34px,5vw,46px);font-weight:750;letter-spacing:.06em;margin:0 0 10px;line-height:1.3;}
+    .intro-copy{color:var(--sub);font-size:14px;line-height:1.9;margin:0;}
+    .layout{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(320px,.9fr);gap:20px;align-items:stretch;}
+    .paper{background:var(--white);border:1px solid var(--line);border-radius:var(--r);}
+    .paper-head{padding:18px 23px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+    .head-accent{height:19px;width:3px;background:var(--blue);flex:none;}
+    h2{font-size:18px;font-weight:700;margin:0;line-height:1.5;letter-spacing:.02em;}
+    .photo-area{padding:23px;}
+    .monitor{width:100%;aspect-ratio:1.25;max-height:410px;min-height:280px;position:relative;background:#edf4f7;border:1px solid #dce8ec;overflow:hidden;isolation:isolate;}
+    .monitor video,.monitor canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;}
+    .monitor video{object-fit:cover;}
+    .monitor video.is-mirrored{transform:scaleX(-1);}
+    .monitor-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#91aeba;gap:13px;padding:26px;}
+    .palm-outline{width:92px;height:110px;opacity:.8;}
+    .standby-line{font-size:13px;line-height:1.8;color:#698794;font-weight:600;}
+    .monitor-top{position:absolute;z-index:5;left:14px;top:13px;display:inline-block;background:rgba(255,255,255,.92);border:1px solid #e0e8eb;padding:6px 9px;color:#3b6d82;font-size:11px;font-weight:600;}
+    .monitor-bottom{position:absolute;z-index:5;bottom:0;left:0;right:0;text-align:center;background:rgba(255,255,255,.9);border-top:1px solid rgba(224,232,235,.8);color:#506e7d;padding:9px 12px;font-size:11px;}
+    .photo-foot{margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.7;}
+    .control-card{padding-bottom:21px;}
+    .control-content{padding:23px;}
+    .control-lead{margin:0 0 20px;color:var(--sub);font-size:13px;line-height:1.9;}
+    .instructions{margin:0 0 23px;padding:0;list-style:none;border-top:1px solid var(--line);}
+    .instructions li{display:flex;gap:13px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.7;}
+    .step{flex:0 0 24px;height:24px;display:grid;place-items:center;color:var(--blue);background:var(--blue-light);font-size:12px;font-weight:700;}
+    .button-stack{display:grid;gap:10px;}
+    .btn{border-radius:4px;width:100%;min-height:49px;padding:12px 14px;display:inline-flex;align-items:center;justify-content:center;text-align:center;gap:9px;font-size:14px;font-weight:700;transition:background-color .17s ease,border-color .17s ease;}
+    .btn-primary{background:var(--blue);border:1px solid var(--blue);color:#fff;}
+    .btn-primary:hover:not(:disabled){background:var(--blue-deep);border-color:var(--blue-deep);}
+    .btn-outline{border:1px solid #a9c9d6;background:#fff;color:var(--blue-deep);}
+    .btn-outline:hover:not(:disabled){background:#eff7fa;}
+    .btn-ghost{border:0;background:transparent;color:var(--blue);font-size:12px;font-weight:600;min-height:38px;text-decoration:underline;text-underline-offset:3px;}
+    .btn-ghost:hover:not(:disabled){color:var(--blue-deep);}
+    .two-btn{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .error-box{margin:15px 0 0;color:#a34e1b;background:#fff5eb;border-left:3px solid var(--orange);padding:12px 14px;font-size:12px;line-height:1.8;}
+    .micro-text{font-size:11px;line-height:1.75;color:var(--muted);margin:14px 0 0;}
+    .privacy{margin:0 23px;border-top:1px solid var(--line);padding:18px 0 0;display:flex;align-items:flex-start;gap:11px;}
+    .privacy svg{flex:none;color:var(--blue);margin-top:1px;}
+    .privacy-title{font-size:12px;font-weight:700;margin:0 0 6px;}
+    .privacy p{font-size:11px;color:var(--sub);line-height:1.8;margin:0;}
+    .scan-overlay{position:absolute;inset:0;z-index:9;background:rgba(250,253,254,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;}
+    .scan-icon{height:44px;width:44px;border-radius:50%;border:3px solid #cbe7f1;border-top-color:var(--blue);animation:spin 1s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .scan-label{font-weight:700;font-size:16px;margin:16px 0 6px;}
+    .scan-sub{font-size:12px;color:var(--sub);line-height:1.7;}
+    .progress-track{margin-top:21px;width:185px;height:4px;background:#dceef4;overflow:hidden;}
+    .progress-bar{height:100%;width:0;background:var(--blue);transition:width .3s ease;}
+    .result-wrap{max-width:760px;margin:auto;}
+    .result-card{overflow:hidden;}
+    .result-head{background:#fff;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:20px 26px;border-bottom:1px solid var(--line);}
+    .result-head h2{font-size:26px;}
+    .result-status{display:inline-flex;align-items:center;gap:7px;color:var(--blue);font-size:12px;font-weight:700;white-space:nowrap;}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);}
+    .result-content{padding:25px 29px 29px;}
+    .result-subheading{font-size:12px;color:var(--blue);font-weight:700;margin:0 0 13px;}
+    .fortune-main{font-size:15px;line-height:2.12;letter-spacing:.018em;margin:0;color:#304251;}
+    .alert-block{margin:17px 0 0;border-left:3px solid var(--orange);background:var(--orange-light);padding:15px 18px;}
+    .alert-text{font-size:16px;font-weight:700;line-height:1.7;color:#75451f;margin:0;}
+    .report-foot{border-top:1px solid var(--line);padding:15px 29px;font-size:11px;line-height:1.75;color:var(--muted);}
+    .handoff{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:25px 29px 24px;}
+    .handoff-label{color:var(--orange);font-size:12px;font-weight:700;margin:0 0 10px;}
+    .handoff h2{font-size:18px;line-height:1.85;margin:0 0 15px;}
+    .handoff h2 strong{color:var(--ink);}
+    .send-target{background:#f7f9fa;border:1px solid #e4e9ec;padding:14px 16px;margin:0 0 15px;font-size:15px;line-height:1.7;color:var(--ink);font-weight:700;user-select:text;}
+    .handoff .btn{width:min(100%,345px);}
+    .copy-status{margin-top:12px;font-size:12px;min-height:20px;color:var(--blue-deep);line-height:1.6;}
+    .game-note{margin:16px 0 0;padding-top:13px;border-top:1px solid var(--line);font-size:11px;line-height:1.9;color:var(--muted);}
+    .reset-link{display:block;margin:24px auto 0;border:0;background:transparent;text-decoration:underline;text-underline-offset:4px;color:var(--blue);font-size:13px;}
+    .footer{background:#fff;border-top:1px solid var(--line);padding:24px 0;color:#82919a;font-size:11px;line-height:1.8;}
+    @media(max-width:800px){main{padding:32px 0 54px;}.layout{grid-template-columns:1fr;}.monitor{max-height:480px;}}
+    @media(max-width:520px){.shell{width:min(100% - 32px,1040px);}.header-row{min-height:68px;}.brand-logo{max-width:185px;height:38px;}.brand-name{font-size:12px;}.dev-status{font-size:10px;padding-left:8px;}.intro{margin-bottom:24px;}.intro-copy{font-size:13px;}.paper-head{padding:16px 17px;}.photo-area{padding:13px;}.monitor{aspect-ratio:1/1;min-height:0;max-height:none;}.photo-foot{padding:0 2px;}.control-content{padding:20px 17px 17px;}.privacy{margin:0 17px;}.two-btn{grid-template-columns:1fr;}.result-head{padding:18px;}.result-head h2{font-size:22px;}.result-content{padding:22px 19px;}.fortune-main{font-size:14px;}.alert-text{font-size:15px;}.report-foot{padding:14px 19px;}.handoff{padding:21px 19px;}.handoff h2{font-size:16px;}.send-target{font-size:14px;}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}}
+
+    /* 撮影方法 → プレビュー → 撮影ボタンの一方向の操作導線 */
+    main{padding:38px 0 62px;}
+    #captureScreen{max-width:710px;margin-inline:auto;}
+    .capture-flow{display:grid;gap:18px;}
+    .instruction-panel .capture-instructions{padding:0 24px 6px;}
+    .instruction-panel .instructions{margin:0;padding:0;border-top:0;}
+    .instruction-panel .instructions li{font-size:14px;padding:13px 0;align-items:center;}
+    .instruction-panel .instructions li:last-child{border-bottom:0;}
+    .camera-panel .photo-area{padding:18px 22px 15px;}
+    .camera-panel .monitor{aspect-ratio:1.18;max-height:515px;min-height:0;}
+    .camera-actions{display:grid;gap:10px;margin-top:13px;}
+    .camera-actions .btn-primary{min-height:58px;font-size:16px;}
+    .camera-actions .btn-ghost{margin-top:0;min-height:38px;}
+    .camera-panel .photo-foot{margin:14px 0 0;}
+    .camera-panel .micro-text{margin:5px 0 0;}
+    .camera-panel .privacy{padding:16px 0 20px;}
+    .outside-section{margin-top:38px;padding:20px;background:#e9eef0;border-top:4px solid #d2e0e6;}
+    .outside-image{display:block;width:100%;height:auto;aspect-ratio:1 / 1;object-fit:contain;background:#fff;}
+    /* 診断結果の直下に任意の画像を表示。縦横比は元画像に追従する。 */
+    .result-extra-section{margin-top:22px;background:#fff;border:1px solid var(--line);}
+    .result-extra-image{display:block;width:100%;height:auto;object-fit:contain;}
+
+    .result-wrap{max-width:760px;}
+    .reset-link{margin:19px auto 0;}
+    @media(max-width:520px){
+      main{padding:27px 0 48px;}
+      .capture-flow{gap:12px;}
+      .instruction-panel .capture-instructions{padding:0 16px 5px;}
+      .instruction-panel .instructions li{font-size:13px;padding:11px 0;gap:10px;}
+      .camera-panel .photo-area{padding:12px 12px 15px;}
+      .camera-panel .monitor{aspect-ratio:1 / 1;max-height:none;}
+      .camera-actions{margin-top:10px;gap:7px;}
+      .camera-actions .btn-primary{min-height:54px;}
+      .camera-panel .privacy{margin:0 15px;padding:15px 0 19px;}
+      .outside-section{margin-top:30px;padding:9px;border-top-width:3px;}
+    }
+
+    /* 解析に使用した写真。指先の判定は写真上の座標に追従する。 */
+    .photo-record{margin-top:0;margin-bottom:20px;overflow:hidden;}
+    .photo-record-head{padding:17px 23px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .photo-record-head h2{font-size:17px;}
+    .photo-record-body{padding:18px 20px 20px;display:flex;justify-content:center;align-items:center;background:#f8fafb;}
+    /* 解析後はcanvasではなく、独立して確定したimgを表示する。 */
+    .photo-record-image{display:block;width:auto;height:auto;max-width:100%;max-height:500px;cursor:default;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;border:1px solid #dce7ec;background:#f1f5f7;}
+    .photo-record-foot{padding:11px 23px 15px;font-size:11px;line-height:1.7;color:var(--sub);}
+    .puzzle-dialog[hidden]{display:none!important;}
+    .puzzle-dialog{position:fixed;inset:0;z-index:1000;background:rgba(26,39,47,.67);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom));}
+    .puzzle-panel{background:#fff;width:min(100%,740px);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;border:1px solid #dbe4e8;box-shadow:0 15px 45px rgba(0,0,0,.23);}
+    .puzzle-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);}
+    .puzzle-head h2{font-size:17px;}
+    .puzzle-close{height:42px;width:42px;flex:none;border:1px solid #dbe4e8;background:#fff;color:#293946;font-size:27px;line-height:1;display:grid;place-items:center;}
+    .puzzle-close:hover{background:#f3f7f8;}
+    .puzzle-body{padding:12px;overflow:auto;overscroll-behavior:contain;}
+    .puzzle-image{display:block;width:100%;height:auto;max-height:calc(100dvh - 130px);object-fit:contain;}
+    .puzzle-fallback{padding:50px 15px;text-align:center;line-height:1.8;color:var(--sub);}
+    body.dialog-open{overflow:hidden;}
+    @media(max-width:520px){.photo-record-head{padding:14px 17px;}.photo-record-body{padding:11px;}.photo-record-image{max-height:440px;}.photo-record-foot{padding:10px 16px 14px;}.puzzle-head{padding:9px 12px;}.puzzle-body{padding:7px;}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-row">
+      <div class="brand">
+        <img src="./image/soyaku_logo.png" id="brandLogo" class="brand-logo" alt="第０創薬化学研究所" hidden>
+        <span class="brand-name" id="brandFallback">第０創薬化学研究所</span>
+      </div>
+      <span class="dev-status">開発中の試験システム</span>
+    </div>
+  </header>
+  <main class="shell">
+    <section id="captureScreen" aria-labelledby="captureTitle">
+      <div class="intro">
+        <p class="intro-label">手の画像を用いた健康状態の予測</p>
+        <h1 id="captureTitle">手占い</h1>
+        <p class="intro-copy">最先端のAIがあなたの手を読み取り、健康状態を予測します。<br>片手を撮影して、解析結果を確認してください。</p>
+      </div>
+      <div class="capture-flow">
+        <section class="paper instruction-panel" aria-labelledby="howTitle">
+          <div class="paper-head"><span class="head-accent" aria-hidden="true"></span><h2 id="howTitle">撮影方法</h2></div>
+          <div class="capture-instructions">
+            <ol class="instructions"><li><span class="step">1</span><span>手のひらか手の甲を、カメラに正面から向ける</span></li><li><span class="step">2</span><span>指を自然に伸ばし、手首から指先まで入れる</span></li><li><span class="step">3</span><span>明るい場所で、傾かないように撮影・解析する</span></li></ol>
+          </div>
+        </section>
+        <section class="paper camera-panel" aria-label="撮影と解析">
+          <div class="paper-head"><span class="head-accent" aria-hidden="true"></span><h2>手の撮影</h2></div>
+          <div class="photo-area">
+            <div class="monitor" id="monitor">
+              <div class="monitor-center" id="standby">
+                <svg class="palm-outline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 105 132" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M25 119c-4-12-10-21-16-34-3-7-1-12 5-14 5-2 9 2 14 10V25c0-7 3-11 9-11 6 0 8 5 8 11v23-33c0-7 3-11 9-11 5 0 8 5 8 11v32-23c0-8 3-12 9-12 5 0 8 4 8 11v31-16c0-7 3-11 9-11 6 0 8 5 8 11v43c0 24-14 38-18 48" />
+                  <path d="M24 119h56" opacity=".5" />
+                </svg>
+                <div class="standby-line">カメラを起動して、片手を写してください</div>
+              </div>
+              <video id="cameraVideo" autoplay muted playsinline hidden></video>
+              <canvas id="preview" hidden aria-label="撮影した手の写真"></canvas>
+              <div class="monitor-top" id="monitorLabel">撮影待機中</div>
+              <div class="monitor-bottom" id="monitorHelp">手が写るように撮影してください</div>
+              <div class="scan-overlay" id="scanOverlay" hidden role="status" aria-live="polite">
+                <div class="scan-icon" aria-hidden="true"></div>
+                <div class="scan-label" id="scanLabel">画像を解析しています</div>
+                <div class="scan-sub" id="scanSub">手の形状を照合中...</div>
+                <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+              </div>
+            </div>
+            <div class="camera-actions" aria-label="カメラの操作">
+              <button type="button" class="btn btn-primary" id="startCamera">カメラを起動する</button>
+              <button type="button" class="btn btn-primary shutter-btn" id="takePhoto" hidden>撮影する</button>
+              <button type="button" class="btn btn-primary" id="analyzePhoto" hidden>この写真を解析する</button>
+              <div class="two-btn" id="retakeRow" hidden><button type="button" class="btn btn-outline" id="retake">撮り直す</button><button type="button" class="btn btn-outline" id="newFile">別の写真を選ぶ</button></div>
+              <button type="button" class="btn btn-outline" id="switchCamera" hidden>内カメラに切り替える</button>
+              <button type="button" class="btn btn-ghost" id="chooseFile">保存済みの写真から選ぶ</button>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" hidden aria-label="手の写真を選択する">
+            <div class="error-box" id="errorBox" hidden role="alert"></div>
+            <p class="photo-foot">片手の手のひら・手の甲を正面から撮影してください。手の側面や斜めからの写真は認識できない場合があります。</p>
+            <p class="micro-text" id="infoText">※カメラには利用許可とHTTPS接続が必要です。外カメラを優先して起動します。</p>
+          </div>
+          <div class="privacy">
+            <svg width="18" height="20" viewBox="0 0 18 21" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="9" width="14" height="11" rx="2"/><path d="M5 9V6a4 4 0 018 0v3"/></svg>
+            <div><div class="privacy-title">撮影画像の取り扱い</div><p>写真はお使いの端末内だけで解析されます。撮影画像がサーバーに送信・保存されたり、ほかの人に公開・共有されたりすることはありません。</p></div>
+          </div>
+        </section>
+      </div>
+    </section>
+    <section id="resultScreen" class="result-wrap" aria-labelledby="resultTitle" hidden>
+      <div class="intro"><p class="intro-label">解析結果</p><h1>手占い</h1><p class="intro-copy">手の画像をもとにした解析が完了しました。</p></div>
+      <section class="paper photo-record" aria-label="解析に使用した写真">
+        <div class="photo-record-head"><h2>解析画像</h2></div>
+        <div class="photo-record-body">
+          <img id="resultPhoto" class="photo-record-image" alt="解析に使用した手の写真" draggable="false">
+        </div>
+        <p class="photo-record-foot">この写真は、端末内でのみ一時的に表示されています。</p>
+      </section>
+      <article class="paper result-card">
+        <div class="result-head"><h2 id="resultTitle">あなたの健康状態</h2><span class="result-status"><span class="status-dot"></span>解析完了</span></div>
+        <div class="result-content">
+          <p class="result-subheading">総合所見</p>
+          <p class="fortune-main" id="fortuneMain"></p>
+          <div class="alert-block"><p class="alert-text" id="alertText">体内に悪性の成分が検出されました。</p></div>
+        </div>
+        <div class="report-foot">第０創薬化学研究所　／　手占い 解析レポート</div>
+      </article>
+      <!-- image/result_extra.png を設置すると、診断結果の直下に即時表示されます。 -->
+      <section class="result-extra-section" id="resultExtraSection" aria-label="診断結果に関連する追加画像" hidden>
+        <img src="./image/result_extra.png" id="resultExtraImage" alt="診断結果に関連する追加画像" class="result-extra-image">
+      </section>
+      <!-- 60秒が経過するまで、既存の隠しメッセージは表示しません。 -->
+      <section class="outside-section" id="secretMessage" aria-label="ひらめき弁当からのご案内" hidden>
+        <img src="./image/hand_result.png" alt="ひらめき弁当をご購入いただきありがとうございます。ここまでたどり着いてくださるのをお待ちしておりました。ひらめき力が向上したあなたへ。「の次」を「の前」にして指示に従ってください。その先でお待ちしています。" width="1210" height="1210" class="outside-image">
+      </section>
+      <button type="button" class="reset-link" id="resetApp">もう一度撮影する</button>
+    </section>
+  </main>
+  <div class="puzzle-dialog" id="puzzleDialog" role="dialog" aria-modal="true" aria-labelledby="puzzleTitle" hidden>
+    <div class="puzzle-panel" id="puzzlePanel">
+      <div class="puzzle-head"><h2 id="puzzleTitle">追加資料</h2><button type="button" id="puzzleClose" class="puzzle-close" aria-label="閉じる">×</button></div>
+      <div class="puzzle-body">
+        <img id="puzzleImage" class="puzzle-image" src="./image/finger_puzzle.png" alt="追加の謎" hidden>
+        <p id="puzzleFallback" class="puzzle-fallback" hidden>追加資料を表示できませんでした。</p>
+      </div>
+    </div>
+  </div>
+  <footer class="footer"><div class="shell">第０創薬化学研究所　｜　開発中の試験システム</div></footer>
+  <script type="module">
+
+    'use strict';
+    // 本HTMLは静的ファイルです。撮影画像をサーバーへ送る処理はありません。
+    // 手の判定のみGoogle MediaPipe（ブラウザ内処理）を利用します。
+    // 利用するJS、WASM、学習済モデルは初回にネットワークからダウンロードされます。
+    const MP_VERSION = '1.1.1';
+    const MP_LIB = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/vision_bundle.mjs`;
+    const MP_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`;
+    const MP_MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+    const ALERT_LINE = '体内に悪性の成分が検出されました。';
+    // 解析結果の表示を起点に、60秒後に結果の下の画像を公開する。
+    // Date.now() と保存時刻の差を使うことで、他アプリへ移動しても経過時間が維持される。
+    const SECRET_DELAY_MS = 60 * 1000;
+    const SECRET_START_KEY = 'teuranai_result_start_v1';
+    // 謎の設定：'middle' は中指固定。'any' にすると「同じ指先を5回」に変更できます。
+    const FINGERTIP_MODE = 'middle';
+    const REQUIRED_FINGER_TAPS = 5;
+    const FINGERTIP_INDEXES = [4,8,12,16,20];
+    const $ = (id) => document.getElementById(id);
+    const elements = {
+      capture: $('captureScreen'), result: $('resultScreen'), video: $('cameraVideo'),
+      preview: $('preview'), standby: $('standby'), monitorLabel: $('monitorLabel'),
+      monitorHelp: $('monitorHelp'), overlay: $('scanOverlay'), scanLabel: $('scanLabel'),
+      scanSub: $('scanSub'), progress: $('progressBar'), error: $('errorBox'),
+      start: $('startCamera'), shoot: $('takePhoto'), analyze: $('analyzePhoto'),
+      retakeRow: $('retakeRow'), retake: $('retake'), newFile: $('newFile'), switch: $('switchCamera'),
+      choose: $('chooseFile'), file: $('fileInput'), fortune: $('fortuneMain'),
+      alert: $('alertText'), reset: $('resetApp'), resultPhoto: $('resultPhoto'), secretMessage: $('secretMessage'),
+      puzzleDialog: $('puzzleDialog'), puzzleClose: $('puzzleClose'), puzzleImage: $('puzzleImage'),
+      puzzleFallback: $('puzzleFallback'),
+      info: $('infoText')
+    };
+    let currentStream = null;
+    let facingMode = 'environment';
+    let cameraActive = false;
+    let photoReady = false;
+    let isAnalyzing = false;
+    let detectorPromise = null;
+    let progressTimer = null;
+    let recognizedLandmarks = null; // 元画像の正規化座標（回転・左右反転後も元に戻す）
+    let lastTappedFinger = null;
+    let fingerTapCount = 0;
+    let pointerDownStart = null;
+    let focusBeforeDialog = null;
+    let puzzleOpenedAt = 0;
+    let secretStartedAt = null;
+    let secretTimer = null;
+
+    function stopSecretTimer() {
+      if (secretTimer !== null) window.clearTimeout(secretTimer);
+      secretTimer = null;
+    }
+    function showSecretMessageWhenDue() {
+      stopSecretTimer();
+      if (elements.result.hidden || secretStartedAt === null) return;
+      // 非表示のタブではタイマーが停止・遅延する場合があるため、残り秒数の積算はしない。
+      // 保存した開始時刻と現在時刻の差で判定する。
+      const remaining = SECRET_DELAY_MS - (Date.now() - secretStartedAt);
+      if (remaining <= 0) {
+        // 60秒経過で hand_result.png に切り替える。
+        // 直前まで表示されていた result_extra.png は消し、二重表示しない。
+        elements.secretMessage.hidden = false;
+        $('resultExtraSection').hidden = true;
+        return; // 一度出現したメッセージは結果表示中は消さない。
+      }
+      if (!elements.secretMessage.hidden) return;
+      secretTimer = window.setTimeout(showSecretMessageWhenDue, remaining);
+    }
+    function startSecretMessageClock() {
+      stopSecretTimer();
+      // 解析が成功し、結果が画面に表示された時刻を起点にする。
+      secretStartedAt = Date.now();
+      elements.secretMessage.hidden = true;
+      // 新しい診断直後は追加画像だけを表示（画像未配置なら何も表示しない）。
+      updateResultExtraImage();
+      try { window.localStorage.setItem(SECRET_START_KEY, String(secretStartedAt)); }
+      catch (_) { /* 保存できない環境でも、表示中の計時を続ける */ }
+      showSecretMessageWhenDue();
+    }
+    function resetSecretMessageClock() {
+      stopSecretTimer();
+      secretStartedAt = null;
+      elements.secretMessage.hidden = true;
+      try { window.localStorage.removeItem(SECRET_START_KEY); } catch (_) {}
+    }
+    // バックグラウンドから戻った際にも即座に経過時間を再判定する。
+    // 画像は自動表示し、再訪やページ更新を要求しない。
+    window.addEventListener('pageshow', showSecretMessageWhenDue);
+    window.addEventListener('focus', showSecretMessageWhenDue);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) showSecretMessageWhenDue();
+    });
+
+    function setError(message = '') {
+      elements.error.hidden = !message;
+      elements.error.textContent = message;
+    }
+    function setState(state) {
+      elements.start.hidden = state !== 'standby';
+      elements.shoot.hidden = state !== 'camera';
+      elements.analyze.hidden = state !== 'preview';
+      elements.retakeRow.hidden = state !== 'preview';
+      elements.switch.hidden = state !== 'camera';
+      elements.choose.hidden = state !== 'standby';
+      elements.standby.hidden = state !== 'standby';
+      elements.video.hidden = state !== 'camera';
+      elements.preview.hidden = state !== 'preview';
+      elements.monitorLabel.textContent = ({standby:'撮影待機中',camera:'カメラ起動中',preview:'撮影済み'})[state];
+      elements.monitorHelp.textContent = ({standby:'手が写るように撮影してください',camera:'片手をフレームの中央へ',preview:'写真を確認して解析に進んでください'})[state];
+      cameraActive = state === 'camera';
+      photoReady = state === 'preview';
+    }
+    function stopCamera() {
+      if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+      currentStream = null;
+      elements.video.srcObject = null;
+      cameraActive = false;
+    }
+    function clearPhoto() {
+      const c = elements.preview;
+      const ctx = c.getContext('2d');
+      if (ctx && c.width && c.height) ctx.clearRect(0,0,c.width,c.height);
+      c.width = 0; c.height = 0;
+      photoReady = false;
+    }
+    // 撮影用canvasの消去や画面の非表示に影響されないように、
+    // 解析が成功した画像を独立したimgに読み込み、表示可能になるまで待つ。
+    function prepareResultPhoto() {
+      const source = elements.preview;
+      if (!source.width || !source.height) throw new Error('解析画像が空です');
+      const snapshot = source.toDataURL('image/jpeg', 0.92);
+      const photo = elements.resultPhoto;
+      return new Promise((resolve,reject) => {
+        const clearListeners = () => {
+          photo.removeEventListener('load',onLoad);
+          photo.removeEventListener('error',onError);
+        };
+        const onLoad = () => { clearListeners();resolve(); };
+        const onError = () => { clearListeners();reject(new Error('解析画像の表示に失敗しました')); };
+        photo.addEventListener('load',onLoad);
+        photo.addEventListener('error',onError);
+        photo.src = snapshot;
+        if (photo.complete) {
+          if (photo.naturalWidth && photo.naturalHeight) onLoad();
+          else onError();
+        }
+      });
+    }
+    function setBusy(on, title = '画像を解析しています', details = '手の形状を照合中...') {
+      isAnalyzing = on;
+      elements.overlay.hidden = !on;
+      elements.scanLabel.textContent = title;
+      elements.scanSub.textContent = details;
+      elements.progress.style.width = '0%';
+      [elements.start,elements.shoot,elements.analyze,elements.retake,elements.newFile,elements.switch,elements.choose].forEach(el => el.disabled = on);
+      clearInterval(progressTimer);
+      if (on) {
+        let n = 7;
+        elements.progress.style.width = `${n}%`;
+        progressTimer = setInterval(() => { n = Math.min(89, n + (n < 60 ? 8 : 3)); elements.progress.style.width = `${n}%`; }, 380);
+      } else { progressTimer = null; }
+    }
+    async function createDetector() {
+      const visionLib = await import(MP_LIB);
+      const vision = await visionLib.FilesetResolver.forVisionTasks(MP_WASM);
+      const settings = {
+        baseOptions: { modelAssetPath: MP_MODEL, delegate: 'CPU' },
+        runningMode: 'IMAGE',
+        numHands: 2,
+        minHandDetectionConfidence: 0.45,
+        minHandPresenceConfidence: 0.43,
+        minTrackingConfidence: 0.5
+      };
+      return await visionLib.HandLandmarker.createFromOptions(vision, settings);
+    }
+    function preloadDetector() {
+      if (!detectorPromise) detectorPromise = createDetector().catch(err => { detectorPromise = null; throw err; });
+      return detectorPromise;
+    }
+    async function openCamera() {
+      if (isAnalyzing) return;
+      setError();
+      stopCamera();
+      clearPhoto();
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setState('standby');
+        setError('この環境ではカメラを起動できません。HTTPS接続をご確認いただくか、「写真から選ぶ」をご利用ください。');
+        return;
+      }
+      elements.start.disabled = true;
+      elements.start.textContent = 'カメラを準備しています...';
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:{ ideal:facingMode }, width:{ideal:1280}, height:{ideal:960} } });
+        currentStream = stream;
+        elements.video.srcObject = stream;
+        elements.video.classList.toggle('is-mirrored',facingMode === 'user');
+        await elements.video.play();
+        setState('camera');
+        elements.switch.textContent = facingMode === 'environment' ? '内カメラに切り替える' : '外カメラに切り替える';
+        // カメラ操作と並行して認識モデルを準備する（未使用のPromise rejectionを抑止）
+        preloadDetector().catch(() => {});
+      } catch (err) {
+        setState('standby');
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')
+          setError('カメラへのアクセスが許可されていません。端末の設定をご確認いただくか、写真から選択してください。');
+        else setError('カメラを起動できませんでした。別のカメラをお試しいただくか、写真から選択してください。');
+      } finally {
+        elements.start.disabled = false;
+        elements.start.textContent = 'カメラを起動する';
+      }
+    }
+    function fitImage(source, width, height) {
+      const maxDim = 1280;
+      const ratio = Math.min(1, maxDim / Math.max(width,height));
+      const newW = Math.max(1,Math.round(width * ratio));
+      const newH = Math.max(1,Math.round(height * ratio));
+      const c = elements.preview;
+      c.width = newW; c.height = newH;
+      c.getContext('2d',{willReadFrequently:true}).drawImage(source,0,0,newW,newH);
+      return c;
+    }
+    function takePicture() {
+      if (!cameraActive || !elements.video.videoWidth || isAnalyzing) return;
+      const v = elements.video;
+      fitImage(v,v.videoWidth,v.videoHeight);
+      if (facingMode === 'user') {
+        // 自撮りプレビューと解析画像の左右を揃える
+        const c = elements.preview, copy = document.createElement('canvas');
+        copy.width=c.width;copy.height=c.height;copy.getContext('2d').drawImage(c,0,0);
+        const ctx=c.getContext('2d');ctx.setTransform(-1,0,0,1,c.width,0);ctx.drawImage(copy,0,0);ctx.resetTransform();
+        copy.width=copy.height=0;
+      }
+      stopCamera();
+      setState('preview');
+      setError();
+    }
+    async function readFile(file) {
+      if (!file || isAnalyzing) return;
+      if (!file.type.startsWith('image/')) { setError('画像ファイルを選択してください。'); return; }
+      setError();
+      stopCamera();
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      try {
+        await new Promise((resolve,reject) => {img.onload=resolve;img.onerror=reject;img.src=url;});
+        fitImage(img,img.naturalWidth,img.naturalHeight);
+        setState('preview');
+      } catch(_) { setState('standby');setError('画像を読み込めませんでした。別の画像をお試しください。'); }
+      finally { URL.revokeObjectURL(url); img.src=''; elements.file.value=''; }
+    }
+    function rotateCanvas(source, angle) {
+      const target = document.createElement('canvas');
+      const quarter = Math.abs(angle) === 90;
+      target.width = quarter ? source.height : source.width;
+      target.height = quarter ? source.width : source.height;
+      const cx = target.getContext('2d');
+      cx.translate(target.width/2, target.height/2);
+      cx.rotate(angle*Math.PI/180);
+      cx.drawImage(source,-source.width/2,-source.height/2);
+      return target;
+    }
+    function mirrorCanvas(source) {
+      const target=document.createElement('canvas');target.width=source.width;target.height=source.height;
+      const ctx=target.getContext('2d');ctx.translate(target.width,0);ctx.scale(-1,1);ctx.drawImage(source,0,0);
+      return target;
+    }
+    function hasValidHand(result) {
+      if (!result?.landmarks?.length || result.landmarks.length !== 1) return false;
+      const pts = result.landmarks[0];
+      if (!pts || pts.length !== 21 || pts.some(p => !Number.isFinite(p.x)||!Number.isFinite(p.y))) return false;
+      const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+      const width=Math.max(...xs)-Math.min(...xs), height=Math.max(...ys)-Math.min(...ys);
+      const handScore = result.handedness?.[0]?.[0]?.score ?? 0;
+      return width > 0.085 && height > 0.085 && handScore >= 0.5;
+    }
+    // 手のひら/手の甲「正面」らしさを手の付け根の広がり・掌の3D面から近似する。
+    // 通常のカメラ1枚では、甲とひらの厳密な識別や角度の保証はできない。
+    function isApproximatelyFrontal(result, imageWidth, imageHeight) {
+      const p=result.landmarks[0];
+      const distance=(a,b)=>Math.hypot((p[a].x-p[b].x)*imageWidth,(p[a].y-p[b].y)*imageHeight);
+      const palmWidth=distance(5,17), palmLength=distance(0,9);
+      if (palmLength < 1 || palmWidth / palmLength < 0.43) return false;
+      const tip=p[12];
+      if (FINGERTIP_MODE === 'middle' &&
+          (tip.x < .018 || tip.x > .982 || tip.y < .018 || tip.y > .982 ||
+           distance(0,12) < distance(0,9)*1.35)) return false;
+      // 横を向けた手は掌の平面がカメラに対して傾く。3D推定値があれば補助判定。
+      const world=result.worldLandmarks?.[0];
+      if (world?.length === 21) {
+        const a=world[5], b=world[17], c=world[0];
+        const u=[a.x-c.x,a.y-c.y,a.z-c.z];
+        const v=[b.x-c.x,b.y-c.y,b.z-c.z];
+        const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+        const length=Math.hypot(...n);
+        if (length > 1e-7 && Math.abs(n[2])/length < .38) return false;
+      }
+      return true;
+    }
+    function landmarksToOriginal(landmarks, transform) {
+      // 変換後画像の座標から、表示する元写真の座標へ戻す。
+      return landmarks.map(({x,y,z})=> {
+        if (transform === 180) return {x:1-x,y:1-y,z};
+        if (transform === 90) return {x:y,y:1-x,z};
+        if (transform === -90) return {x:1-y,y:x,z};
+        if (transform === 'mirror') return {x:1-x,y,z};
+        return {x,y,z};
+      });
+    }
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve,ms)); }
+    async function verifyHand(detector, canvas) {
+      // 縦横の持ち方を補正するが、指先は必ず元写真に戻して記録する。
+      const variants = [ {angle:0,label:'基本姿勢'}, {angle:180,label:'向きの補正'}, {angle:90,label:'角度の補正'}, {angle:-90,label:'角度の補正'} ];
+      let recognizedMultipleHands = false;
+      let recognizedButOblique = false;
+      for (const variant of variants) {
+        const target = variant.angle ? rotateCanvas(canvas,variant.angle) : canvas;
+        try {
+          elements.scanSub.textContent = `手の形状を照合中...  / ${variant.label}`;
+          const result=detector.detect(target);
+          if (result?.landmarks?.length > 1) recognizedMultipleHands = true;
+          if (hasValidHand(result)) {
+            if (isApproximatelyFrontal(result,target.width,target.height))
+              return {valid:true,landmarks:landmarksToOriginal(result.landmarks[0],variant.angle)};
+            recognizedButOblique = true;
+          }
+        } finally { if (target!==canvas) target.width=target.height=0; }
+        await sleep(30);
+      }
+      const mirror=mirrorCanvas(canvas);
+      try {
+        const result=detector.detect(mirror);
+        if(result?.landmarks?.length>1) recognizedMultipleHands=true;
+        if(hasValidHand(result)) {
+          if(isApproximatelyFrontal(result,mirror.width,mirror.height))
+            return {valid:true,landmarks:landmarksToOriginal(result.landmarks[0],'mirror')};
+          recognizedButOblique=true;
+        }
+      } finally { mirror.width=mirror.height=0; }
+      return {valid:false,multiple:recognizedMultipleHands,oblique:recognizedButOblique};
+    }
+    // 健康・脳活動の文章はゲーム内の創作です。手の写真から実際の健康情報を推定しません。
+    // 共通の脳活動所見を常に表示し、他の3つの所見を各4種類からランダムに選びます（64パターン）。
+    const BRAIN_FINDING = '特に脳の活動が活性化しており、ひらめき力が高まっている兆候が見られます。';
+    const readings = {
+      a: [
+        '体調はおおむね安定しており、大きな乱れは見られません。',
+        '全身の調子は比較的良好で、日常の活動を保てています。',
+        '身体の状態は概ね落ち着いていますが、小さな変化には注意が必要です。',
+        '日々のコンディションは安定しており、回復力も保たれています。'
+      ],
+      b: [
+        '一方、疲れがたまると集中が続きにくくなる傾向があります。',
+        'ただし、睡眠不足が続くと疲労が残りやすくなるようです。',
+        'その反面、忙しい日が続くと心身の負担が増えやすい状態です。',
+        '一時的に疲れを感じやすいものの、休息で整えられるでしょう。'
+      ],
+      c: [
+        '十分な睡眠とこまめな水分補給を意識しましょう。',
+        '食事と休息のリズムを整えることが大切です。',
+        '無理をせず、適度な運動と休憩を心がけてください。',
+        '疲れを感じたら、早めに休むようにしてください。'
+      ]
+    };
+    function randomItem(list) { return list[Math.floor(Math.random()*list.length)]; }
+    function buildFortune() {
+      const main = '解析の結果、' + randomItem(readings.a) + BRAIN_FINDING + randomItem(readings.b) + randomItem(readings.c);
+      return {main,full:main + ALERT_LINE};
+    }
+    async function doAnalyze() {
+      if (isAnalyzing || !photoReady) return;
+      setError();
+      setBusy(true);
+      const start=performance.now();
+      try {
+        const detector=await preloadDetector();
+        elements.scanSub.textContent='取得画像の特徴量を照合中...';
+        const outcome=await verifyHand(detector,elements.preview);
+        // 認識に成功しても演出の長さを少し確保する。
+        if (outcome.valid) {
+          const elapsed=performance.now()-start;
+          if (elapsed<1300) await sleep(1300-elapsed);
+          elements.progress.style.width='100%';
+          elements.scanLabel.textContent='解析が完了しました';
+          elements.scanSub.textContent='レポートを生成しています...';
+          await sleep(430);
+          const fortune=buildFortune();
+          elements.fortune.textContent=fortune.main;
+          elements.alert.textContent=ALERT_LINE;
+          // 結果画面に切り替える前に写真の読み込みを確定する。
+          // 撮影用canvasは後で消去するが、独立したimgの内容は失われない。
+          await prepareResultPhoto();
+          recognizedLandmarks=outcome.landmarks;
+          fingerTapCount=0;lastTappedFinger=null;
+          stopCamera();clearPhoto();
+          setBusy(false);
+          elements.capture.hidden=true;elements.result.hidden=false;
+          startSecretMessageClock();
+          window.scrollTo({top:0,behavior:'auto'});
+        } else {
+          setBusy(false);
+          setError(outcome.multiple ? '手が複数写っている可能性があります。片手だけを写して撮り直してください。' : outcome.oblique ? '手の側面や斜めの向きでは判定できません。手のひらか手の甲をカメラにまっすぐ向け、指を伸ばして撮り直してください。' : '画像から手を認識できませんでした。手のひらか手の甲を正面から大きく写し、明るい場所でもう一度お試しください。');
+        }
+      } catch(err) {
+        console.error('Hand model initialization / detection failed:',err);
+        setBusy(false);
+        setError(err.message?.includes('解析画像') ? '解析した写真を表示できませんでした。もう一度撮影してお試しください。' : 'AI認識モデルを読み込めませんでした。ネットワーク接続をご確認のうえ、再度「この写真を解析する」を押してください。画像は送信されていません。');
+      }
+    }
+    function reset() {
+      resetSecretMessageClock();
+      stopCamera();clearPhoto();setError();
+      elements.fortune.textContent='';
+      recognizedLandmarks=null;fingerTapCount=0;lastTappedFinger=null;
+      elements.resultPhoto.removeAttribute('src');
+      closePuzzle();
+      setState('standby');elements.result.hidden=true;elements.capture.hidden=false;
+      window.scrollTo({top:0,behavior:'auto'});
+    }
+    function openPuzzle() {
+      // タッチ終了直後の合成clickが、開いたばかりの背景へ届いて即座に閉じる現象を防ぐ。
+      puzzleOpenedAt=performance.now();
+      focusBeforeDialog=document.activeElement;
+      elements.puzzleDialog.hidden=false;
+      document.body.classList.add('dialog-open');
+      const picture=elements.puzzleImage;
+      elements.puzzleFallback.hidden=true;
+      picture.hidden=true;
+      // すでにロードされていた画像も再表示できる。
+      if(picture.complete) {
+        if(picture.naturalWidth) picture.hidden=false;
+        else elements.puzzleFallback.hidden=false;
+      }
+      elements.puzzleClose.focus();
+    }
+    function closePuzzle() {
+      elements.puzzleDialog.hidden=true;
+      document.body.classList.remove('dialog-open');
+      if(focusBeforeDialog?.isConnected) focusBeforeDialog.focus({preventScroll:true});
+      focusBeforeDialog=null;
+    }
+    function registerPhotoTap(clientX,clientY) {
+      if(!recognizedLandmarks || elements.result.hidden || !elements.puzzleDialog.hidden) return;
+      const photo=elements.resultPhoto;
+      if (!photo.complete || !photo.naturalWidth || !photo.naturalHeight) return;
+      const rect=photo.getBoundingClientRect();
+      if(!rect.width || !rect.height) return;
+      // object-fit:containにより余白が発生しても、実際の画像領域の座標で判定する。
+      const scale=Math.min(rect.width/photo.naturalWidth,rect.height/photo.naturalHeight);
+      const imageWidth=photo.naturalWidth*scale, imageHeight=photo.naturalHeight*scale;
+      const originX=rect.left+(rect.width-imageWidth)/2;
+      const originY=rect.top+(rect.height-imageHeight)/2;
+      const candidates=FINGERTIP_INDEXES.map(index=>({
+        index,
+        distance:Math.hypot(recognizedLandmarks[index].x*imageWidth-(clientX-originX),recognizedLandmarks[index].y*imageHeight-(clientY-originY))
+      })).sort((a,b)=>a.distance-b.distance);
+      // 中指の判定領域を少し広めにする（画像短辺の約14.5%、34〜68px）。
+      // 画像の大きさに追従させ、隣の指との取り違えを避けるため最も近い指先で判定。
+      const radius=Math.max(34,Math.min(68,Math.min(imageWidth,imageHeight)*.145));
+      const nearest=candidates[0];
+      const picked=nearest.distance<=radius && (FINGERTIP_MODE==='any' || nearest.index===12)?nearest.index:null;
+      if(picked===null) {lastTappedFinger=null;fingerTapCount=0;return;}
+      if(lastTappedFinger!==picked) {lastTappedFinger=picked;fingerTapCount=0;}
+      fingerTapCount++;
+      if(fingerTapCount>=REQUIRED_FINGER_TAPS){fingerTapCount=0;lastTappedFinger=null;openPuzzle();}
+    }
+    elements.resultPhoto.addEventListener('pointerdown',event=> {
+      if(event.button!==0) return;
+      pointerDownStart={id:event.pointerId,x:event.clientX,y:event.clientY};
+    });
+    elements.resultPhoto.addEventListener('pointerup',event=> {
+      const start=pointerDownStart;pointerDownStart=null;
+      if(!start || start.id!==event.pointerId || Math.hypot(start.x-event.clientX,start.y-event.clientY)>20) return;
+      registerPhotoTap(event.clientX,event.clientY);
+    });
+    elements.resultPhoto.addEventListener('pointercancel',()=>{pointerDownStart=null;});
+    elements.puzzleImage.addEventListener('load',()=>{elements.puzzleImage.hidden=false;elements.puzzleFallback.hidden=true;});
+    elements.puzzleImage.addEventListener('error',()=>{elements.puzzleImage.hidden=true;elements.puzzleFallback.hidden=false;});
+    elements.puzzleClose.addEventListener('click',closePuzzle);
+    elements.puzzleDialog.addEventListener('click',event=>{
+      if(event.target===elements.puzzleDialog && performance.now()-puzzleOpenedAt>500) closePuzzle();
+    });
+    document.addEventListener('keydown',event=>{
+      if(elements.puzzleDialog.hidden) return;
+      if(event.key==='Escape'){event.preventDefault();closePuzzle();}
+      if(event.key==='Tab') { // ダイアログ内の唯一の操作ボタンへフォーカスを維持
+        event.preventDefault();elements.puzzleClose.focus();
+      }
+    });
+    elements.start.addEventListener('click',openCamera);
+    elements.shoot.addEventListener('click',takePicture);
+    elements.analyze.addEventListener('click',doAnalyze);
+    elements.retake.addEventListener('click',openCamera);
+    elements.switch.addEventListener('click',() => { facingMode=facingMode === 'environment'?'user':'environment';openCamera(); });
+    elements.choose.addEventListener('click',()=>elements.file.click());
+    elements.newFile.addEventListener('click',()=>elements.file.click());
+    elements.file.addEventListener('change',e=>readFile(e.target.files?.[0]));
+    elements.reset.addEventListener('click',reset);
+    window.addEventListener('pagehide',stopCamera);
+    document.addEventListener('visibilitychange',() => {
+      if (document.hidden && cameraActive) {
+        stopCamera();
+        setState('standby');
+        setError('カメラは一時停止しました。再度起動してください。');
+      }
+    });
+    // 任意の追加画像は、ファイルが存在するときだけ表示する。
+    // 画像が未配置ならセクションごと非表示にし、破損した画像マークを出さない。
+    const resultExtraSection = $('resultExtraSection');
+    const resultExtraImage = $('resultExtraImage');
+    const updateResultExtraImage = () => {
+      // 診断結果の60秒後に hand_result.png が出たら、追加画像は再表示しない。
+      resultExtraSection.hidden = !(
+        resultExtraImage.complete &&
+        resultExtraImage.naturalWidth > 0 &&
+        elements.secretMessage.hidden
+      );
+    };
+    resultExtraImage.addEventListener('load', updateResultExtraImage);
+    resultExtraImage.addEventListener('error', updateResultExtraImage);
+    if (resultExtraImage.complete) updateResultExtraImage();
+
+    // ロゴ画像が未配置の間は研究所名を文字で表示します。
+    // image/soyaku_logo.png をアップロードすると自動で画像に切り替わります。
+    const brandLogo = $('brandLogo');
+    const brandFallback = $('brandFallback');
+    function showBrandLogo() {
+      if (brandLogo.naturalWidth > 0) {
+        brandLogo.hidden = false;
+        brandFallback.hidden = true;
+      }
+    }
+    brandLogo.addEventListener('load', showBrandLogo);
+    if (brandLogo.complete) showBrandLogo();
+    setState('standby');
+  
+  </script>
+</body>
+</html>
